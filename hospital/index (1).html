@@ -1,0 +1,2331 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hôpital EL-ELYON - Système de Gestion Hospitalière</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+  :root {
+    --primary: #0d6efd;
+    --primary-dark: #0a58ca;
+    --success: #198754;
+    --danger: #dc3545;
+    --warning: #ffc107;
+    --info: #0dcaf0;
+    --dark: #212529;
+    --light: #f8f9fa;
+    --gray: #6c757d;
+    --border: #dee2e6;
+    --shadow: 0 2px 10px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+    color: var(--dark);
+    min-height: 100vh;
+  }
+  .login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  }
+  .login-box {
+    background: white;
+    padding: 40px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 400px;
+  }
+  .login-box h1 { text-align: center; color: var(--primary); margin-bottom: 10px; }
+  .login-box p { text-align: center; color: var(--gray); margin-bottom: 30px; }
+  .login-error {
+    display: none;
+    background: #f8d7da;
+    color: #842029;
+    padding: 10px;
+    border-radius: var(--radius-sm);
+    margin-bottom: 15px;
+    font-size: 13px;
+    text-align: center;
+  }
+  .login-error.show { display: block; }
+  .form-group { margin-bottom: 20px; }
+  .form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: var(--dark);
+    font-size: 14px;
+  }
+  .form-control {
+    width: 100%;
+    padding: 10px 15px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    transition: all 0.2s;
+  }
+  .form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(13,110,253,0.1);
+  }
+  select.form-control {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%236c757d' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 35px;
+  }
+  .form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+  }
+  .btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s;
+    text-decoration: none;
+  }
+  .btn:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-success { background: var(--success); color: white; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-warning { background: var(--warning); color: var(--dark); }
+  .btn-secondary { background: var(--gray); color: white; }
+  .btn-info { background: var(--info); color: white; }
+  .btn-block { width: 100%; justify-content: center; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .app-container { display: none; }
+  .app-container.active { display: flex; }
+  .sidebar {
+    width: 260px;
+    background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    min-height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    overflow-y: auto;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    padding-bottom: 120px;
+  }
+  .sidebar-header {
+    padding: 25px 20px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    text-align: center;
+  }
+  .sidebar-header h2 { font-size: 22px; margin-bottom: 5px; }
+  .sidebar-header p { font-size: 12px; opacity: 0.8; }
+  .sidebar-menu { list-style: none; padding: 20px 0; }
+  .sidebar-menu li { margin-bottom: 5px; }
+  .sidebar-menu a {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 20px;
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: all 0.2s;
+    border-left: 3px solid transparent;
+    cursor: pointer;
+  }
+  .sidebar-menu a:hover,
+  .sidebar-menu a.active {
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border-left-color: var(--warning);
+  }
+  .sidebar-menu a i { width: 20px; text-align: center; }
+  .sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    position: fixed;
+    bottom: 0;
+    width: 260px;
+    background: linear-gradient(180deg, #1e3c72 0%, #2a5298 100%);
+  }
+  .main-content {
+    margin-left: 260px;
+    flex: 1;
+    padding: 30px;
+    min-height: 100vh;
+  }
+  .module { display: none; }
+  .module.active { display: block; animation: fadeIn 0.3s; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .module-header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    padding: 25px 30px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+  }
+  .module-header h1 {
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .module-header p { opacity: 0.9; margin-top: 5px; font-size: 13px; }
+  .header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+    margin-bottom: 25px;
+  }
+  .stat-card {
+    background: white;
+    padding: 20px;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .stat-card:hover { transform: translateY(-3px); }
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 5px; height: 100%;
+    background: var(--primary);
+  }
+  .stat-card.success::before { background: var(--success); }
+  .stat-card.danger::before { background: var(--danger); }
+  .stat-card.warning::before { background: var(--warning); }
+  .stat-card.info::before { background: var(--info); }
+  .stat-card .stat-icon {
+    position: absolute;
+    top: 15px; right: 15px;
+    font-size: 35px;
+    opacity: 0.15;
+  }
+  .stat-card .stat-label {
+    color: var(--gray);
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+  .stat-card .stat-value {
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--dark);
+  }
+  .stat-card .stat-sub { font-size: 11px; color: var(--gray); margin-top: 5px; }
+  .card {
+    background: white;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 25px;
+    margin-bottom: 25px;
+  }
+  .section-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--light);
+  }
+  .section-title i { color: var(--primary); }
+  .table-wrapper { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  thead { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); }
+  th {
+    padding: 12px 15px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border);
+  }
+  td {
+    padding: 12px 15px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+  }
+  tbody tr { transition: background 0.15s; }
+  tbody tr:hover { background: #f8f9fa; }
+  .badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .badge-success { background: #d1e7dd; color: #0f5132; }
+  .badge-danger { background: #f8d7da; color: #842029; }
+  .badge-warning { background: #fff3cd; color: #664d03; }
+  .badge-info { background: #cff4fc; color: #055160; }
+  .badge-primary { background: #cfe2ff; color: #084298; }
+  .badge-secondary { background: #e2e3e5; color: #41464b; }
+  .amount { font-weight: 700; font-family: 'Courier New', monospace; }
+  .amount.positive { color: var(--success); }
+  .amount.negative { color: var(--danger); }
+  .actions-cell { display: flex; gap: 5px; flex-wrap: wrap; }
+  .icon-btn {
+    width: 32px;
+    height: 32px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    font-size: 13px;
+  }
+  .icon-btn.view { background: #cfe2ff; color: #084298; }
+  .icon-btn.pay { background: #d1e7dd; color: #0f5132; }
+  .icon-btn.edit { background: #fff3cd; color: #664d03; }
+  .icon-btn.delete { background: #f8d7da; color: #842029; }
+  .icon-btn:hover { transform: scale(1.1); box-shadow: var(--shadow); }
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: white;
+    border-radius: var(--radius);
+    max-width: 900px;
+    width: 100%;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: slideUp 0.3s;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(30px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal-header {
+    padding: 20px 25px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .modal-header h3 {
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .modal-close {
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  .modal-close:hover { background: rgba(255,255,255,0.3); }
+  .modal-body { padding: 25px; overflow-y: auto; flex: 1; }
+  .modal-footer {
+    padding: 15px 25px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    background: #f8f9fa;
+  }
+  .toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: white;
+    padding: 15px 20px;
+    border-radius: var(--radius-sm);
+    box-shadow: var(--shadow-lg);
+    border-left: 4px solid var(--success);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 2000;
+    animation: slideIn 0.3s;
+    min-width: 280px;
+  }
+  .toast.error { border-left-color: var(--danger); }
+  .toast.warning { border-left-color: var(--warning); }
+  @keyframes slideIn {
+    from { transform: translateX(400px); }
+    to { transform: translateX(0); }
+  }
+  .tarif-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+  }
+  .tarif-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 20px;
+    border-radius: var(--radius-sm);
+    border-left: 4px solid var(--primary);
+  }
+  .tarif-card h4 {
+    font-size: 15px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .tarif-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    font-size: 13px;
+    border-bottom: 1px dashed rgba(0,0,0,0.1);
+  }
+  .tarif-item:last-child { border-bottom: none; }
+  .tarif-note {
+    margin-top: 15px;
+    padding: 12px;
+    background: #fff3cd;
+    border-left: 4px solid var(--warning);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: #664d03;
+  }
+  .tarif-note.info {
+    background: #cfe2ff;
+    border-left-color: var(--primary);
+    color: #084298;
+  }
+  .empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--gray);
+  }
+  .empty-state i {
+    font-size: 50px;
+    opacity: 0.3;
+    margin-bottom: 15px;
+  }
+  .search-box {
+    position: relative;
+    flex: 1;
+    max-width: 350px;
+  }
+  .search-box input {
+    width: 100%;
+    padding: 10px 15px 10px 40px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+  }
+  .search-box i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray);
+  }
+  .patient-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: var(--radius-sm);
+    margin-bottom: 20px;
+  }
+  .info-item { display: flex; flex-direction: column; }
+  .info-item .label {
+    font-size: 11px;
+    color: var(--gray);
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .info-item .value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--dark);
+  }
+  .payment-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+  }
+  .summary-card {
+    padding: 15px;
+    border-radius: var(--radius-sm);
+    text-align: center;
+  }
+  .summary-card.total { background: #cfe2ff; color: #084298; }
+  .summary-card.paid { background: #d1e7dd; color: #0f5132; }
+  .summary-card.unpaid { background: #f8d7da; color: #842029; }
+  .summary-card .s-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  .summary-card .s-value { font-size: 20px; font-weight: 700; }
+  .summary-card .s-sub { font-size: 11px; margin-top: 3px; opacity: 0.8; }
+  .tranche-item {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr auto;
+    gap: 8px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: var(--radius-sm);
+    align-items: center;
+  }
+  .tranche-item .tranche-label {
+    font-size: 10px;
+    color: var(--gray);
+    text-transform: uppercase;
+    font-weight: 600;
+    margin-bottom: 3px;
+  }
+  .filter-buttons {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+  .filter-btn {
+    padding: 8px 16px;
+    border: 2px solid var(--border);
+    background: white;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .filter-btn:hover {
+    border-color: var(--primary);
+    background: #f8f9fa;
+  }
+  .filter-btn.active {
+    background: var(--primary);
+    color: white;
+    border-color: var(--primary);
+  }
+  .print-header {
+    display: none;
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    border-bottom: 3px solid var(--primary);
+  }
+  .print-header h1 {
+    color: var(--primary);
+    font-size: 28px;
+    margin-bottom: 10px;
+  }
+  .print-header p { color: var(--gray); font-size: 14px; }
+  .print-footer {
+    display: none;
+    margin-top: 50px;
+    padding: 20px;
+    border-top: 2px solid var(--border);
+    text-align: center;
+    font-size: 12px;
+    color: var(--gray);
+  }
+  .signature-line {
+    margin-top: 40px;
+    text-align: right;
+    font-size: 14px;
+  }
+  @media print {
+    .sidebar, .header-actions, .actions-cell, .search-box, .modal-footer, .btn, .filter-buttons { display: none !important; }
+    .main-content { margin-left: 0; padding: 0; }
+    .module-header { background: white !important; color: black !important; box-shadow: none; }
+    .print-header, .print-footer { display: block !important; }
+    body { background: white; }
+  }
+  @media (max-width: 768px) {
+    .sidebar { width: 200px; }
+    .main-content { margin-left: 200px; padding: 15px; }
+    .module-header { padding: 20px; }
+    .module-header h1 { font-size: 18px; }
+    th, td { padding: 8px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="login-container" id="loginContainer">
+  <div class="login-box">
+    <h1><i class="fas fa-hospital"></i> Hôpital EL-ELYON</h1>
+    <p>Système de Gestion Hospitalière</p>
+    <div class="login-error" id="loginError">
+      <i class="fas fa-exclamation-circle"></i> Mot de passe incorrect
+    </div>
+    <form onsubmit="login(event)">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" class="form-control" id="email" placeholder="admin@hospital.local" value="admin@hospital.local" required>
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" class="form-control" id="password" placeholder="Mot de passe" value="admin123" required>
+        <small style="color: var(--gray);">* Utilisez l’email et le mot de passe du backend</small>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">
+        <i class="fas fa-sign-in-alt"></i> Se connecter
+      </button>
+    </form>
+  </div>
+</div>
+<div class="app-container" id="appContainer">
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h2>EL-ELYON</h2>
+      <p>Système de Gestion Hospitalière</p>
+    </div>
+    <ul class="sidebar-menu">
+      <li><a class="active" onclick="showModule('dashboard', this)"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a></li>
+      <li><a onclick="showModule('reminder', this)"><i class="fas fa-bell"></i> Rappel Journalier</a></li>
+      <li><a onclick="showModule('payments', this)"><i class="fas fa-money-bill-wave"></i> Paiements</a></li>
+      <li><a onclick="showModule('rooms', this)"><i class="fas fa-bed"></i> Gestion des Chambres</a></li>
+      <li><a onclick="showModule('admission', this)"><i class="fas fa-user-plus"></i> Admission Patient</a></li>
+      <li><a onclick="showModule('insurance', this)"><i class="fas fa-shield-alt"></i> Gestion des Assurances</a></li>
+      <li><a onclick="showModule('exit', this)"><i class="fas fa-sign-out-alt"></i> Exéat & Décès</a></li>
+      <li><a onclick="showModule('history', this)"><i class="fas fa-history"></i> Historique</a></li>
+    </ul>
+    <div class="sidebar-footer">
+      <button class="btn btn-danger btn-block" onclick="logout()">
+        <i class="fas fa-sign-out-alt"></i> Déconnexion
+      </button>
+      <p style="text-align: center; font-size: 11px; margin-top: 10px; opacity: 0.7;">© 2026 Hôpital EL-ELYON</p>
+    </div>
+  </div>
+  <div class="main-content">
+    <div class="module active" id="dashboard">
+      <div class="print-header">
+        <h1><i class="fas fa-hospital"></i> HÔPITAL EL-ELYON</h1>
+        <p>Rapport du Tableau de Bord - Généré le <span id="printDate1"></span></p>
+      </div>
+      <div class="module-header">
+        <div>
+          <h1><i class="fas fa-tachometer-alt"></i> Tableau de Bord</h1>
+          <p>Vue d'ensemble de l'hôpital</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-warning" onclick="window.print()">
+            <i class="fas fa-print"></i> Imprimer le Rapport
+          </button>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <i class="fas fa-users stat-icon"></i>
+          <div class="stat-label">Patients Hospitalisés</div>
+          <div class="stat-value" id="dashPatients">0</div>
+          <div class="stat-sub">En cours de séjour</div>
+        </div>
+        <div class="stat-card info">
+          <i class="fas fa-bed stat-icon"></i>
+          <div class="stat-label">Salles Totales</div>
+          <div class="stat-value" id="dashTotalRooms">0</div>
+          <div class="stat-sub">Capacité totale</div>
+        </div>
+        <div class="stat-card success">
+          <i class="fas fa-door-open stat-icon"></i>
+          <div class="stat-label">Salles Vides</div>
+          <div class="stat-value" id="dashEmptyRooms">0</div>
+          <div class="stat-sub">Disponibles</div>
+        </div>
+        <div class="stat-card warning">
+          <i class="fas fa-percentage stat-icon"></i>
+          <div class="stat-label">Taux d'Occupation</div>
+          <div class="stat-value" id="dashOccupancy">0%</div>
+          <div class="stat-sub">Salles occupées</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title">
+          <i class="fas fa-chart-bar"></i> Aperçu des Occupations & Assurances
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>N° Chambre</th>
+                <th>Patient</th>
+                <th>Date d'entrée</th>
+                <th>Durée (nuits)</th>
+                <th>Assurance</th>
+                <th>Prise en charge</th>
+              </tr>
+            </thead>
+            <tbody id="dashboardTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="module" id="reminder">
+      <div class="print-header">
+        <h1><i class="fas fa-hospital"></i> RAPPEL JOURNALIER</h1>
+        <p>HÔPITAL EL-ELYON - Rapport des patients hospitalisés</p>
+        <p>Date du rapport : <span id="printDate2"></span></p>
+      </div>
+      <div class="module-header">
+        <div>
+          <h1><i class="fas fa-bell"></i> Rappel Journalier</h1>
+          <p>Rapport des patients hospitalisés</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-warning" onclick="window.print()">
+            <i class="fas fa-print"></i> Imprimer le Rapport
+          </button>
+        </div>
+      </div>
+      <div class="filter-buttons">
+        <button class="filter-btn active" onclick="filterReminder('all', this)"><i class="fas fa-hospital"></i> Toutes les salles</button>
+        <button class="filter-btn" onclick="filterReminder('Standard', this)"><i class="fas fa-bed"></i> Salles Standard</button>
+        <button class="filter-btn" onclick="filterReminder('Individuelle', this)"><i class="fas fa-user"></i> Salles Individuelles</button>
+        <button class="filter-btn" onclick="filterReminder('Commune', this)"><i class="fas fa-users"></i> Salles Communes</button>
+        <button class="filter-btn" onclick="filterReminder('VIP', this)"><i class="fas fa-star"></i> Salles VIP</button>
+        <button class="filter-btn" onclick="filterReminder('Réanimation', this)"><i class="fas fa-heartbeat"></i> Réanimation</button>
+        <button class="filter-btn" onclick="filterReminder('Pédiatrie', this)"><i class="fas fa-baby"></i> Pédiatrie</button>
+        <button class="filter-btn" onclick="filterReminder('Urgence', this)"><i class="fas fa-ambulance"></i> Urgences</button>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><i class="fas fa-users stat-icon"></i><div class="stat-label">Total Patients</div><div class="stat-value" id="remTotal">0</div></div>
+        <div class="stat-card success"><i class="fas fa-shield-alt stat-icon"></i><div class="stat-label">Assurés</div><div class="stat-value" id="remAssures">0</div></div>
+        <div class="stat-card danger"><i class="fas fa-user-slash stat-icon"></i><div class="stat-label">Non Assurés</div><div class="stat-value" id="remNonAssures">0</div></div>
+        <div class="stat-card warning"><i class="fas fa-ambulance stat-icon"></i><div class="stat-label">Urgences</div><div class="stat-value" id="remUrgences">0</div></div>
+      </div>
+      <div class="card">
+        <div class="section-title"><i class="fas fa-list"></i> Liste détaillée des patients hospitalisés</div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>N°</th><th>Nom du Patient</th><th>Salle</th><th>Type de Salle</th>
+                <th>Date d'admission</th><th>Nombre de nuits</th><th>Statut Assurance</th><th>Nom de l'Assurance</th>
+              </tr>
+            </thead>
+            <tbody id="reminderTable"></tbody>
+          </table>
+        </div>
+        <p style="margin-top: 15px; font-size: 13px; color: var(--gray);">Total des patients : <strong id="remTotalFooter">0</strong></p>
+      </div>
+      <div class="print-footer">
+        <div class="signature-line">Signature : ____________________</div>
+        <p style="margin-top: 20px;">Document généré automatiquement par le Système de Gestion Hospitalière EL-ELYON</p>
+      </div>
+    </div>
+    <div class="module" id="payments">
+      <div class="print-header">
+        <h1><i class="fas fa-hospital"></i> MODULE PAIEMENT</h1>
+        <p>HÔPITAL EL-ELYON - Gestion des paiements d'hospitalisation</p>
+      </div>
+      <div class="module-header">
+        <div>
+          <h1><i class="fas fa-money-bill-wave"></i> Module Paiements</h1>
+          <p>Gestion des paiements d'hospitalisation</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn btn-warning" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
+          <button class="btn btn-success" onclick="exportPaymentsCSV()"><i class="fas fa-file-export"></i> Exporter</button>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card warning"><i class="fas fa-coins stat-icon"></i><div class="stat-label">Total à Payer</div><div class="stat-value" id="payTotal">0 F</div><div class="stat-sub" id="payTotalDays">0 nuit(s) au total</div></div>
+        <div class="stat-card success"><i class="fas fa-check-circle stat-icon"></i><div class="stat-label">Total Payé</div><div class="stat-value" id="payPaid">0 F</div><div class="stat-sub" id="payPaidDays">0 nuit(s) payée(s)</div></div>
+        <div class="stat-card danger"><i class="fas fa-exclamation-triangle stat-icon"></i><div class="stat-label">Total Impayé</div><div class="stat-value" id="payUnpaid">0 F</div><div class="stat-sub" id="payUnpaidDays">0 nuit(s) non payée(s)</div></div>
+        <div class="stat-card info"><i class="fas fa-users stat-icon"></i><div class="stat-label">Patients</div><div class="stat-value" id="payPatients">0</div><div class="stat-sub">Patients hospitalisés</div></div>
+      </div>
+      <div class="card">
+        <div class="section-title"><i class="fas fa-tags"></i> Grille tarifaire appliquée</div>
+        <div class="tarif-grid">
+          <div class="tarif-card">
+            <h4><i class="fas fa-user-slash"></i> Patient NON ASSURÉ</h4>
+            <div class="tarif-item"><span>  ️   Chambre Standard : 10 000 F / nuit</span></div>
+            <div class="tarif-item"><span>  👤   Chambre Individuelle : 23 000 F / nuit</span></div>
+            <div class="tarif-item"><span>   Salle de Réanimation : 100 000 F / nuit</span></div>
+          </div>
+        </div>
+        <div class="tarif-note">
+          <i class="fas fa-info-circle"></i>
+          <strong>Note :</strong> Le jour d'admission n'est pas facturé. On facture les <strong>nuitées</strong> à partir du lendemain de l'admission. La salle de Réanimation n'est pas prise en charge par les assurances (tarif fixe à 100 000 F/nuit). Les prises en charge pour les patients assurés sont configurées manuellement dans le module "Gestion des Assurances".
+        </div>
+        <div class="tarif-note info">
+          <i class="fas fa-exchange-alt"></i>
+          <strong>Règle automatique :</strong> Pour les patients <strong>ASSURÉS</strong>, lorsque leur prise en charge (PEC) est terminée, expirée ou non active à une date donnée, le système applique <strong>automatiquement le tarif NON ASSURÉ</strong> pour les jours concernés.
+        </div>
+      </div>
+      <div class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+          <div class="section-title" style="margin: 0; border: none; padding: 0;"><i class="fas fa-list"></i> Liste des patients - État des paiements</div>
+          <div class="search-box"><i class="fas fa-search"></i><input type="text" id="paySearchInput" placeholder="Rechercher..." oninput="renderPaymentsTable()"></div>
+        </div>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>N°</th><th>Patient</th><th>Chambre</th><th>Assurance</th>
+                <th>Nuits Séjour</th><th>Nuits Payées</th><th>Nuits Non Payées</th>
+                <th>Montant Payé</th><th>Montant Dû</th><th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="paymentsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="module" id="rooms">
+      <div class="module-header">
+        <div><h1><i class="fas fa-bed"></i> Gestion des Chambres</h1><p>Ajouter et gérer les chambres de l'hôpital</p></div>
+      </div>
+      <div class="card">
+        <div class="section-title"><i class="fas fa-plus-circle"></i> Ajouter une nouvelle chambre</div>
+        <div class="form-row">
+          <div class="form-group"><label>Numéro de salle</label><input type="text" class="form-control" id="roomNumber" placeholder="Ex: 101"></div>
+          <div class="form-group"><label>Type</label>
+            <select class="form-control" id="roomType">
+              <option value="Standard">Standard</option><option value="Individuelle">Individuelle</option>
+              <option value="Commune">Commune</option><option value="VIP">VIP</option>
+              <option value="Réanimation">Réanimation</option><option value="Pédiatrie">Pédiatrie</option>
+              <option value="Urgence">Urgence</option>
+            </select>
+          </div>
+          <div class="form-group" style="display: flex; align-items: flex-end;"><button class="btn btn-primary" onclick="addRoom()"><i class="fas fa-plus"></i> Ajouter</button></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title"><i class="fas fa-list"></i> Liste des Chambres</div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Numéro</th><th>Type</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody id="roomsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="module" id="admission">
+      <div class="module-header">
+        <div><h1><i class="fas fa-user-plus"></i> Admission Patient</h1><p>Enregistrer l'admission d'un nouveau patient</p></div>
+      </div>
+      <div class="card">
+        <div class="section-title"><i class="fas fa-user-plus"></i> Formulaire d'admission</div>
+        <form onsubmit="admitPatient(event)">
+          <div class="form-row">
+            <div class="form-group"><label>Nom complet du patient</label><input type="text" class="form-control" id="patientName" required></div>
+            <div class="form-group"><label>Date d'admission</label><input type="date" class="form-control" id="admissionDate" required></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Chambre assignée</label><select class="form-control" id="patientRoom" required></select></div>
+            <div class="form-group"><label>Statut d'assurance</label>
+              <select class="form-control" id="insuranceStatus" onchange="toggleInsuranceSelect()" required>
+                <option value="Non Assuré">Non Assuré</option><option value="Assuré">Assuré</option>
+              </select>
+            </div>
+            <div class="form-group" id="insuranceSelectGroup" style="display: none;">
+              <label>Type d'assurance</label>
+              <select class="form-control" id="insuranceType">
+                <option value="">-- Sélectionner l'assurance --</option>
+                <option value="AMU">AMU</option><option value="INAM">INAM</option>
+                <option value="ASCOMA">ASCOMA</option><option value="GRAS SAVOYE">GRAS SAVOYE</option>
+                <option value="SALAM">SALAM</option><option value="OLEA">OLEA</option>
+                <option value="GTA">GTA</option><option value="TRANSVIE">TRANSVIE</option>
+                <option value="SUNU CLASSIQUE">SUNU CLASSIQUE</option><option value="SUNU BUDGET">SUNU BUDGET</option>
+              </select>
+            </div>
+          </div>
+          <div class="tarif-note">
+            <i class="fas fa-info-circle"></i>
+            Les détails (dates, prix réel et montant PEC) seront configurés dans le module "Gestion des Assurances".
+          </div>
+          <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Enregistrer l'Admission</button>
+        </form>
+      </div>
+    </div>
+    <div class="module" id="insurance">
+      <div class="module-header">
+        <div><h1><i class="fas fa-shield-alt"></i> Gestion des Assurances</h1><p>Configuration des prises en charge</p></div>
+      </div>
+      <div class="card">
+        <div class="tarif-note info" style="margin-top: 0;">
+          <i class="fas fa-info-circle"></i>
+          <strong>Comment configurer une PEC :</strong> Pour chaque tranche, indiquez le <strong>prix réel</strong> de l'hospitalisation et le <strong>montant pris en charge</strong> par l'assurance. Le patient paiera automatiquement la différence : <strong>Prix réel − PEC</strong>.
+        </div>
+        <div class="section-title"><i class="fas fa-list"></i> Gestion des Prises en Charge</div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Patient</th><th>Chambre</th><th>Type d'assurance</th><th>Détails Prise en Charge</th><th>Total jours PEC</th><th>Action</th></tr></thead>
+            <tbody id="insuranceTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="module" id="exit">
+      <div class="module-header">
+        <div><h1><i class="fas fa-sign-out-alt"></i> Gestion des Sorties</h1><p>Exéat et Décès des patients</p></div>
+      </div>
+      <div class="card">
+        <div class="section-title"><i class="fas fa-list"></i> Patients hospitalisés</div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Patient</th><th>Chambre</th><th>Date Admission</th><th>Assurance</th><th>Actions</th></tr></thead>
+            <tbody id="exitTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <div class="module" id="history">
+      <div class="print-header">
+        <h1><i class="fas fa-hospital"></i> HÔPITAL EL-ELYON</h1>
+        <p>Historique complet des mouvements</p>
+      </div>
+      <div class="module-header">
+        <div><h1><i class="fas fa-history"></i> Historique des Mouvements</h1><p>Historique complet des admissions et sorties</p></div>
+        <div class="header-actions">
+          <button class="btn btn-danger" onclick="resetHistory()"><i class="fas fa-trash"></i> Réinitialiser</button>
+          <button class="btn btn-warning" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="section-title"><i class="fas fa-list"></i> Historique complet des mouvements</div>
+        <div class="table-wrapper">
+          <table>
+            <thead><tr><th>Date & Heure</th><th>Type d'événement</th><th>Patient</th><th>Chambre</th><th>Détails du séjour</th><th>Date de sortie/décès</th></tr></thead>
+            <tbody id="historyTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="paymentModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3><i class="fas fa-file-invoice-dollar"></i> Détail des Paiements</h3>
+      <button class="modal-close" onclick="closeModal('paymentModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="paymentModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('paymentModal')">Fermer</button>
+      <button class="btn btn-primary" onclick="window.print()"><i class="fas fa-print"></i> Imprimer</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="editAmountModal">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-header">
+      <h3><i class="fas fa-edit"></i> Modifier le Montant Journalier</h3>
+      <button class="modal-close" onclick="closeModal('editAmountModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Date</label><input type="text" class="form-control" id="editDate" readonly></div>
+      <div class="form-group"><label>Informations</label><input type="text" class="form-control" id="editPEC" readonly></div>
+      <div class="form-group"><label>Nouveau montant (F)</label><input type="number" class="form-control" id="editAmount" min="0" step="1"></div>
+      <input type="hidden" id="editPatientId">
+      <input type="hidden" id="editDayDate">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('editAmountModal')">Annuler</button>
+      <button class="btn btn-success" onclick="saveEditedAmount()"><i class="fas fa-save"></i> Enregistrer</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="pecModal">
+  <div class="modal" style="max-width: 1000px;">
+    <div class="modal-header">
+      <h3><i class="fas fa-shield-alt"></i> Configurer la Prise en Charge</h3>
+      <button class="modal-close" onclick="closeModal('pecModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="pecModalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('pecModal')">Annuler</button>
+      <button class="btn btn-success" onclick="savePEC()"><i class="fas fa-save"></i> Enregistrer</button>
+    </div>
+  </div>
+</div>
+<div class="modal-overlay" id="exitModal">
+  <div class="modal" style="max-width: 500px;">
+    <div class="modal-header">
+      <h3><i class="fas fa-sign-out-alt"></i> Sortie du Patient</h3>
+      <button class="modal-close" onclick="closeModal('exitModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group"><label>Type de sortie</label>
+        <select class="form-control" id="exitType">
+          <option value="Exéat">Exéat (Sortie normale)</option><option value="Décès">Décès</option>
+        </select>
+      </div>
+      <div class="form-group"><label>Date de sortie</label><input type="date" class="form-control" id="exitDate"></div>
+      <input type="hidden" id="exitPatientId">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('exitModal')">Annuler</button>
+      <button class="btn btn-danger" onclick="confirmExit()"><i class="fas fa-check"></i> Confirmer</button>
+    </div>
+  </div>
+</div>
+<script>
+let state = { rooms: [], patients: [], paiements: {}, history: [], auth: { token: null, user: null }, backendMode: false, apiBaseUrl: '', configLoaded: false };
+let currentReminderFilter = 'all';
+const TARIFS_NON_ASSURE = {
+  Standard: 10000,
+  Individuelle: 23000,
+  Commune: 8000,
+  VIP: 35000,
+  Réanimation: 100000,
+  Pédiatrie: 12000,
+  Urgence: 15000
+};
+
+// ============================================================
+// FONCTION CENTRALISÉE : retourne la date LOCALE d'aujourd'hui
+// C'est la clé pour garantir la cohérence entre tous les modules
+// ============================================================
+function getTodayStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function getApiBaseUrl() {
+  if (state.apiBaseUrl) return state.apiBaseUrl;
+  if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+    return 'http://localhost:5000';
+  }
+  return '';
+}
+
+async function loadRuntimeConfig() {
+  if (state.configLoaded) return;
+  try {
+    const response = await fetch('/api/config');
+    const data = await response.json();
+    if (data?.backendUrl) {
+      state.apiBaseUrl = data.backendUrl;
+    }
+  } catch (error) {
+    console.warn('Config runtime non disponible, utilisation du fallback local:', error);
+  }
+  state.configLoaded = true;
+}
+
+function getApiUrl(path) {
+  const base = getApiBaseUrl();
+  return `${base}${path}`;
+}
+
+async function apiRequest(path, options = {}) {
+  const headers = {
+    'Content-Type': 'application/json',
+    ...(state.auth.token ? { Authorization: `Bearer ${state.auth.token}` } : {}),
+    ...(options.headers || {}),
+  };
+
+  const response = await fetch(getApiUrl(path), {
+    ...options,
+    headers,
+  });
+
+  const data = await response.json().catch(() => null);
+  if (!response.ok) {
+    throw new Error(data?.error || 'Erreur réseau avec l’API');
+  }
+  return data;
+}
+
+function initLocalDemoState() {
+  const saved = localStorage.getItem('elyon_data_v12');
+  if (saved) {
+    state = { ...state, ...JSON.parse(saved) };
+    if (!state.auth) state.auth = { token: null, user: null };
+    return;
+  }
+
+  state.rooms = [
+    { id: 1, number: '101', type: 'Standard' },
+    { id: 2, number: '102', type: 'Standard' },
+    { id: 3, number: '201', type: 'Individuelle' },
+    { id: 4, number: '202', type: 'Individuelle' },
+    { id: 5, number: '301', type: 'VIP' },
+    { id: 6, number: '401', type: 'Urgence' },
+    { id: 7, number: 'REA-1', type: 'Réanimation' }
+  ];
+  const today = new Date();
+  const fiveDaysAgo = new Date(today);
+  fiveDaysAgo.setDate(today.getDate() - 5);
+  const admissionDate = fiveDaysAgo.toISOString().split('T')[0];
+
+  state.patients = [
+    {
+      id: 1,
+      nom: 'KOUASSI Jean-Baptiste',
+      chambre: '101',
+      typeChambre: 'Standard',
+      assurance: 'Non Assuré',
+      insuranceType: '',
+      dateAdmission: admissionDate,
+      dateSortie: null,
+      typeSortie: null,
+      pecs: []
+    },
+    {
+      id: 2,
+      nom: 'DIABATÉ Awa',
+      chambre: '201',
+      typeChambre: 'Individuelle',
+      assurance: 'Assuré',
+      insuranceType: 'AMU',
+      dateAdmission: admissionDate,
+      dateSortie: null,
+      typeSortie: null,
+      pecs: []
+    },
+    {
+      id: 3,
+      nom: 'OUEDRAOGO Moussa',
+      chambre: '102',
+      typeChambre: 'Standard',
+      assurance: 'Assuré',
+      insuranceType: 'INAM',
+      dateAdmission: admissionDate,
+      dateSortie: null,
+      typeSortie: null,
+      pecs: []
+    }
+  ];
+  generateDemoPayments();
+  saveState();
+}
+
+async function loadBackendData() {
+  const token = localStorage.getItem('elyon_token');
+  if (token) {
+    state.auth.token = token;
+  }
+
+  const [dashboard, patientsRes, roomsRes, historyRes, insuranceRes] = await Promise.all([
+    apiRequest('/api/dashboard'),
+    apiRequest('/api/patients?all=true'),
+    apiRequest('/api/rooms'),
+    apiRequest('/api/history?limit=100'),
+    apiRequest('/api/insurance/list/all')
+  ]);
+
+  const patients = patientsRes.data || [];
+  const rooms = roomsRes.data || [];
+  const history = historyRes.data || [];
+  const insurances = insuranceRes.data || [];
+
+  state.rooms = rooms.map((room) => ({
+    id: room._id,
+    number: room.roomNumber,
+    type: room.type,
+    isOccupied: room.isOccupied,
+  }));
+
+  state.patients = patients.map((patient) => {
+    const insurance = insurances.find((item) => item.patient?._id === patient._id || item.patient === patient._id);
+    return {
+      id: patient._id,
+      nom: patient.nom,
+      chambre: patient.chambre?.roomNumber || patient.chambre,
+      chambreId: patient.chambre?._id || patient.chambre,
+      typeChambre: patient.typeChambre,
+      assurance: patient.statut || 'Non Assuré',
+      insuranceType: patient.insurance?.insuranceType || insurance?.insuranceType || '',
+      dateAdmission: patient.dateAdmission?.split('T')[0] || patient.dateAdmission,
+      dateSortie: patient.dateSortie ? patient.dateSortie.split('T')[0] : null,
+      typeSortie: patient.typeSortie,
+      pecs: insurance?.pecs || [],
+      notes: patient.notes || '',
+    };
+  });
+
+  const paymentsByPatient = {};
+  for (const patient of state.patients) {
+    try {
+      const paymentResponse = await apiRequest(`/api/payments/patient/${patient.id}`);
+      const payments = paymentResponse.data || [];
+      const paymentMap = {};
+      payments.forEach((payment) => {
+        const dateKey = payment.date?.split('T')[0];
+        if (dateKey) {
+          paymentMap[dateKey] = {
+            montant: payment.montantReel || payment.montantCalcule || 0,
+            paye: Boolean(payment.paye),
+            pec: payment.pecActive || null,
+            modifie: Boolean(payment.modifie),
+          };
+        }
+      });
+      paymentsByPatient[patient.id] = paymentMap;
+    } catch (error) {
+      paymentsByPatient[patient.id] = {};
+    }
+  }
+
+  state.paiements = paymentsByPatient;
+  state.history = (history || []).map((entry) => ({
+    id: entry._id,
+    date: entry.createdAt || entry.date,
+    type: entry.type,
+    patient: entry.patient?.nom || entry.description || 'Patient',
+    chambre: entry.details?.roomNumber || '-',
+    details: entry.description || '',
+    dateSortie: entry.details?.dateSortie || null,
+  }));
+  state.backendMode = true;
+  saveState();
+  renderAll();
+}
+
+async function init() {
+  await loadRuntimeConfig();
+  state.auth = JSON.parse(localStorage.getItem('elyon_auth') || '{"token":null,"user":null}');
+  if (state.auth?.token) {
+    try {
+      await loadBackendData();
+      document.getElementById('loginContainer').style.display = 'none';
+      document.getElementById('appContainer').classList.add('active');
+      document.getElementById('admissionDate').value = getTodayStr();
+      document.getElementById('exitDate').value = getTodayStr();
+      return;
+    } catch (error) {
+      console.warn('Impossible de restaurer la session backend:', error);
+    }
+  }
+
+  initLocalDemoState();
+  renderAll();
+}
+
+function generateDemoPayments() {
+  const todayStr = getTodayStr();
+  state.patients.forEach(p => {
+    if (p.dateSortie) return;
+    regeneratePaymentsForPatient(p, todayStr);
+  });
+}
+
+// Calcule le nombre de NUITÉES (sans compter le jour d'admission)
+// Ex: admission le 01/07, aujourd'hui le 06/07 => 5 nuitées
+function countNights(dateAdmission, endDate) {
+  if (!dateAdmission || !endDate) return 0;
+  // Normalisation à minuit local pour éviter les décalages UTC
+  const admission = new Date(dateAdmission + 'T00:00:00');
+  const end = new Date(endDate + 'T00:00:00');
+  const diff = end - admission;
+  const nights = Math.floor(diff / (1000 * 60 * 60 * 24));
+  return nights < 0 ? 0 : nights;
+}
+
+function regeneratePaymentsForPatient(patient, endDateStr) {
+  const admission = new Date(patient.dateAdmission + 'T00:00:00');
+  // On commence le lendemain de l'admission (première nuitée)
+  const start = new Date(admission);
+  start.setDate(start.getDate() + 1);
+  const end = new Date(endDateStr + 'T00:00:00');
+  state.paiements[patient.id] = {};
+  let current = new Date(start);
+  while (current <= end) {
+    const dateStr = formatDateISO(current);
+    const pec = getPecForDate(patient, dateStr);
+    const tarif = calculateTarif(patient, dateStr, pec);
+    state.paiements[patient.id][dateStr] = {
+      montant: tarif,
+      paye: Math.random() > 0.4,
+      pec: pec ? { prixReel: pec.prixReel, montantPEC: pec.montantPEC } : null,
+      modifie: false
+    };
+    current.setDate(current.getDate() + 1);
+  }
+}
+
+// Formate une date locale en YYYY-MM-DD (sans décalage UTC)
+function formatDateISO(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function saveState() {
+  localStorage.setItem('elyon_data_v12', JSON.stringify(state));
+  localStorage.setItem('elyon_auth', JSON.stringify(state.auth || { token: null, user: null }));
+  if (state.auth?.token) {
+    localStorage.setItem('elyon_token', state.auth.token);
+  } else {
+    localStorage.removeItem('elyon_token');
+  }
+}
+
+async function login(e) {
+  e.preventDefault();
+  const email = document.getElementById('email').value.trim();
+  const password = document.getElementById('password').value;
+
+  try {
+    const response = await apiRequest('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+
+    state.auth = {
+      token: response.data?.token || null,
+      user: response.data?.user || null,
+    };
+    saveState();
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('appContainer').classList.add('active');
+    document.getElementById('loginError').classList.remove('show');
+    document.getElementById('admissionDate').value = getTodayStr();
+    document.getElementById('exitDate').value = getTodayStr();
+    await loadBackendData();
+    showToast('Connexion réussie');
+  } catch (error) {
+    document.getElementById('loginError').textContent = `⚠️ ${error.message}`;
+    document.getElementById('loginError').classList.add('show');
+  }
+}
+
+function logout() {
+  if (confirm('Voulez-vous vraiment vous déconnecter ?')) {
+    state.auth = { token: null, user: null };
+    saveState();
+    document.getElementById('loginContainer').style.display = 'flex';
+    document.getElementById('appContainer').classList.remove('active');
+    document.getElementById('password').value = '';
+    document.getElementById('loginError').classList.remove('show');
+  }
+}
+
+function showModule(moduleId, el) {
+  document.querySelectorAll('.module').forEach(m => m.classList.remove('active'));
+  document.getElementById(moduleId).classList.add('active');
+  document.querySelectorAll('.sidebar-menu a').forEach(a => a.classList.remove('active'));
+  if (el) el.classList.add('active');
+  renderAll();
+}
+
+function formatMontant(n) {
+  return new Intl.NumberFormat('fr-FR').format(n) + ' F';
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '-';
+  const parts = dateStr.split('-');
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+
+function showToast(message, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'times-circle' : 'exclamation-circle';
+  toast.innerHTML = `<i class="fas fa-${icon}" style="color: var(--${type === 'success' ? 'success' : type === 'error' ? 'danger' : 'warning'})"></i> ${message}`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('active');
+}
+
+function getPecForDate(patient, dateStr) {
+  if (!patient.pecs || patient.pecs.length === 0) return null;
+  if (patient.assurance !== 'Assuré') return null;
+  if (patient.typeChambre === 'Réanimation') return null;
+  const date = new Date(dateStr + 'T00:00:00');
+  return patient.pecs.find(pec => {
+    if (pec.statut !== 'Accordée') return false;
+    const debut = new Date(pec.dateDebut + 'T00:00:00');
+    const fin = new Date(pec.dateFin + 'T00:00:00');
+    return date >= debut && date <= fin;
+  });
+}
+
+function calculateTarif(patient, dateStr, pec) {
+  const type = patient.typeChambre;
+  if (type === 'Réanimation') {
+    return TARIFS_NON_ASSURE.Réanimation;
+  }
+  if (patient.assurance === 'Non Assuré' || !pec) {
+    return TARIFS_NON_ASSURE[type] || TARIFS_NON_ASSURE.Standard;
+  }
+  const paiement = pec.prixReel - pec.montantPEC;
+  return paiement < 0 ? 0 : paiement;
+}
+
+function getCurrentTarifStatus(patient) {
+  if (patient.typeChambre === 'Réanimation') {
+    return { label: 'Réa (Non Assuré)', color: 'danger', note: 'Tarif fixe 100 000 F' };
+  }
+  if (patient.assurance === 'Non Assuré') {
+    return { label: 'Non Assuré', color: 'danger', note: formatMontant(TARIFS_NON_ASSURE[patient.typeChambre] || 10000) + '/nuit' };
+  }
+  const today = getTodayStr();
+  const pec = getPecForDate(patient, today);
+  if (pec) {
+    const paiement = pec.prixReel - pec.montantPEC;
+    return { label: 'Assuré (PEC active)', color: 'success', note: `${formatMontant(pec.prixReel)} - ${formatMontant(pec.montantPEC)} = ${formatMontant(paiement)}/nuit` };
+  } else {
+    return { label: 'Non Assuré (PEC terminée)', color: 'warning', note: 'Bascule auto' };
+  }
+}
+
+function getPatientStats(patientId) {
+  const paiements = state.paiements[patientId] || {};
+  let totalDays = 0, paidDays = 0, unpaidDays = 0;
+  let totalAmount = 0, paidAmount = 0, unpaidAmount = 0;
+  Object.values(paiements).forEach(p => {
+    totalDays++;
+    totalAmount += p.montant;
+    if (p.paye) { paidDays++; paidAmount += p.montant; }
+    else { unpaidDays++; unpaidAmount += p.montant; }
+  });
+  return { totalDays, paidDays, unpaidDays, totalAmount, paidAmount, unpaidAmount };
+}
+
+function renderAll() {
+  renderDashboard();
+  renderReminder();
+  renderRooms();
+  renderPatientRoomSelect();
+  renderInsuranceTable();
+  renderExitTable();
+  renderHistory();
+  renderPaymentsTable();
+  const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  document.getElementById('printDate1').textContent = today;
+  document.getElementById('printDate2').textContent = today;
+}
+
+function renderDashboard() {
+  const activePatients = state.patients.filter(p => !p.dateSortie);
+  const totalRooms = state.rooms.length;
+  const occupiedRooms = new Set(activePatients.map(p => p.chambre)).size;
+  const emptyRooms = totalRooms - occupiedRooms;
+  const occupancy = totalRooms > 0 ? Math.round((occupiedRooms / totalRooms) * 100) : 0;
+  document.getElementById('dashPatients').textContent = activePatients.length;
+  document.getElementById('dashTotalRooms').textContent = totalRooms;
+  document.getElementById('dashEmptyRooms').textContent = emptyRooms;
+  document.getElementById('dashOccupancy').textContent = occupancy + '%';
+  const tbody = document.getElementById('dashboardTable');
+  if (activePatients.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-inbox"></i><p>Aucun patient hospitalisé</p></div></td></tr>`;
+    return;
+  }
+  // UTILISATION DE getTodayStr() pour la cohérence
+  const today = getTodayStr();
+  tbody.innerHTML = activePatients.map(p => {
+    const nuits = countNights(p.dateAdmission, today);
+    const pecs = p.pecs || [];
+    const pecsAccordees = pecs.filter(pec => pec.statut === 'Accordée');
+    let pecDetail = '';
+    if (p.typeChambre === 'Réanimation') {
+      pecDetail = `
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span class="badge badge-danger"><i class="fas fa-heartbeat"></i> Réanimation</span>
+          <span style="font-size: 11px; color: var(--gray);">100 000 F/nuit (non pris en charge)</span>
+        </div>
+      `;
+    } else if (pecsAccordees.length > 0) {
+      const tranchesHTML = pecsAccordees.map(pec => {
+        const paiement = pec.prixReel - pec.montantPEC;
+        return `
+          <div style="font-size: 11px; padding: 3px 0; border-bottom: 1px dashed rgba(0,0,0,0.1);">
+            <i class="fas fa-calendar-day" style="color: var(--success);"></i>
+            ${formatDate(pec.dateDebut)} → ${formatDate(pec.dateFin)} 
+            <strong style="color: var(--primary);">Patient paie : ${formatMontant(paiement)}/nuit</strong>
+          </div>
+        `;
+      }).join('');
+      pecDetail = `
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+            <span class="badge badge-success"><i class="fas fa-check"></i> PEC Active</span>
+            <span class="badge badge-primary">${p.insuranceType}</span>
+          </div>
+          ${tranchesHTML}
+        </div>
+      `;
+    } else if (pecs.length > 0) {
+      const lastPEC = pecs[pecs.length - 1];
+      const statutColor = lastPEC.statut === 'Refusée' ? 'danger' : 'warning';
+      pecDetail = `
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span class="badge badge-${statutColor}">
+            <i class="fas fa-${lastPEC.statut === 'Refusée' ? 'times' : 'clock'}"></i> ${lastPEC.statut}
+          </span>
+          <div style="font-size: 11px; color: var(--gray);">${formatDate(lastPEC.dateDebut)} → ${formatDate(lastPEC.dateFin)}</div>
+        </div>
+      `;
+    } else {
+      pecDetail = `
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span class="badge badge-warning"><i class="fas fa-exclamation-circle"></i> Sans PEC</span>
+          <span style="font-size: 11px; color: var(--gray);">Tarif non assuré</span>
+        </div>
+      `;
+    }
+    return `
+      <tr>
+        <td><strong>${p.chambre}</strong><br><small style="color:var(--gray)">${p.typeChambre}</small></td>
+        <td><strong>${p.nom}</strong></td>
+        <td>${formatDate(p.dateAdmission)}</td>
+        <td><strong>${nuits}</strong> nuit(s)</td>
+        <td>${p.assurance === 'Non Assuré' ? '<span class="badge badge-danger">Non Assuré</span>' : `<span class="badge badge-success">${p.insuranceType}</span>`}</td>
+        <td>${pecDetail}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function filterReminder(type, btn) {
+  currentReminderFilter = type;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderReminder();
+}
+
+function renderReminder() {
+  let activePatients = state.patients.filter(p => !p.dateSortie);
+  if (currentReminderFilter !== 'all') {
+    activePatients = activePatients.filter(p => p.typeChambre === currentReminderFilter);
+  }
+  const assures = activePatients.filter(p => p.assurance === 'Assuré').length;
+  const nonAssures = activePatients.filter(p => p.assurance === 'Non Assuré').length;
+  const urgences = activePatients.filter(p => p.typeChambre === 'Urgence').length;
+  document.getElementById('remTotal').textContent = activePatients.length;
+  document.getElementById('remAssures').textContent = assures;
+  document.getElementById('remNonAssures').textContent = nonAssures;
+  document.getElementById('remUrgences').textContent = urgences;
+  document.getElementById('remTotalFooter').textContent = activePatients.length;
+  const tbody = document.getElementById('reminderTable');
+  if (activePatients.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><i class="fas fa-inbox"></i><p>Aucun patient</p></div></td></tr>`;
+    return;
+  }
+  // UTILISATION DE getTodayStr() pour la cohérence
+  const today = getTodayStr();
+  tbody.innerHTML = activePatients.map((p, i) => {
+    const nuits = countNights(p.dateAdmission, today);
+    return `
+      <tr>
+        <td><strong>${i + 1}</strong></td>
+        <td>${p.nom}</td>
+        <td><span class="badge badge-info">${p.chambre}</span></td>
+        <td>${p.typeChambre}</td>
+        <td>${formatDate(p.dateAdmission)}</td>
+        <td><strong>${nuits}</strong> nuit(s)</td>
+        <td>${p.assurance === 'Non Assuré' ? '<span class="badge badge-danger">Non Assuré</span>' : '<span class="badge badge-success">Assuré</span>'}</td>
+        <td>${p.insuranceType || '-'}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function renderRooms() {
+  const tbody = document.getElementById('roomsTableBody');
+  if (state.rooms.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4"><div class="empty-state"><i class="fas fa-bed"></i><p>Aucune chambre</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = state.rooms.map(r => {
+    const occupied = state.patients.some(p => p.chambre === r.number && !p.dateSortie);
+    return `
+      <tr>
+        <td><strong>${r.number}</strong></td>
+        <td>${r.type}</td>
+        <td>${occupied ? '<span class="badge badge-danger">Occupée</span>' : '<span class="badge badge-success">Libre</span>'}</td>
+        <td><div class="actions-cell"><button class="icon-btn delete" title="Supprimer" onclick="deleteRoom(${r.id})"><i class="fas fa-trash"></i></button></div></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+async function addRoom() {
+  const number = document.getElementById('roomNumber').value.trim();
+  const type = document.getElementById('roomType').value;
+  if (!number) { showToast('Numéro de salle requis', 'error'); return; }
+  if (state.rooms.some(r => r.number === number)) { showToast('Cette chambre existe déjà', 'error'); return; }
+
+  try {
+    if (state.backendMode) {
+      await apiRequest('/api/rooms', {
+        method: 'POST',
+        body: JSON.stringify({ roomNumber: number, type }),
+      });
+      await loadBackendData();
+      document.getElementById('roomNumber').value = '';
+      showToast('Chambre ajoutée avec succès');
+      return;
+    }
+
+    state.rooms.push({ id: Date.now(), number, type });
+    saveState();
+    renderRooms();
+    renderPatientRoomSelect();
+    document.getElementById('roomNumber').value = '';
+    showToast('Chambre ajoutée avec succès');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+async function deleteRoom(id) {
+  const room = state.rooms.find(r => r.id === id);
+  if (state.patients.some(p => p.chambre === room.number && !p.dateSortie)) {
+    showToast('Impossible : chambre occupée', 'error'); return;
+  }
+  if (!confirm('Supprimer cette chambre ?')) return;
+
+  try {
+    if (state.backendMode) {
+      await apiRequest(`/api/rooms/${id}`, { method: 'DELETE' });
+      await loadBackendData();
+      showToast('Chambre supprimée');
+      return;
+    }
+
+    state.rooms = state.rooms.filter(r => r.id !== id);
+    saveState();
+    renderRooms();
+    renderPatientRoomSelect();
+    showToast('Chambre supprimée');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+function renderPatientRoomSelect() {
+  const select = document.getElementById('patientRoom');
+  if (!select) return;
+  const occupiedRooms = new Set(state.patients.filter(p => !p.dateSortie).map(p => p.chambre));
+  const availableRooms = state.rooms.filter(r => !occupiedRooms.has(r.number));
+  select.innerHTML = '<option value="">-- Sélectionner --</option>' +
+    availableRooms.map(r => `<option value="${r.id}" data-number="${r.number}" data-type="${r.type}">${r.number} (${r.type})</option>`).join('');
+}
+
+function toggleInsuranceSelect() {
+  const status = document.getElementById('insuranceStatus').value;
+  document.getElementById('insuranceSelectGroup').style.display = status === 'Assuré' ? 'block' : 'none';
+}
+
+async function admitPatient(e) {
+  e.preventDefault();
+  const nom = document.getElementById('patientName').value.trim();
+  const dateAdmission = document.getElementById('admissionDate').value;
+  const roomSelect = document.getElementById('patientRoom');
+  const chambreId = roomSelect.value;
+  const typeChambre = roomSelect.options[roomSelect.selectedIndex]?.dataset.type || '';
+  const assurance = document.getElementById('insuranceStatus').value;
+  const insuranceType = assurance === 'Assuré' ? document.getElementById('insuranceType').value : '';
+  if (!nom || !dateAdmission || !chambreId) { showToast('Veuillez remplir tous les champs', 'error'); return; }
+  if (assurance === 'Assuré' && !insuranceType) { showToast('Veuillez sélectionner le type d\'assurance', 'error'); return; }
+
+  try {
+    if (state.backendMode) {
+      const payload = {
+        nom,
+        prenom: '',
+        telephone: '',
+        email: '',
+        adresse: '',
+        chambreId,
+        dateAdmission,
+        statut: assurance,
+        insuranceType: assurance === 'Assuré' ? insuranceType : undefined,
+      };
+      await apiRequest('/api/patients', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      });
+      await loadBackendData();
+      e.target.reset();
+      document.getElementById('admissionDate').value = getTodayStr();
+      document.getElementById('insuranceSelectGroup').style.display = 'none';
+      showToast('Patient admis avec succès');
+      return;
+    }
+
+    const patient = {
+      id: Date.now(),
+      nom, chambre: chambreId, typeChambre, assurance, insuranceType,
+      dateAdmission,
+      dateSortie: null,
+      typeSortie: null,
+      pecs: []
+    };
+    state.patients.push(patient);
+    const todayStr = getTodayStr();
+    regeneratePaymentsForPatient(patient, todayStr);
+    state.history.push({
+      id: Date.now(),
+      date: new Date().toISOString(),
+      type: 'Admission',
+      patient: nom,
+      chambre: chambreId,
+      details: `${typeChambre} - ${assurance}${insuranceType ? ' (' + insuranceType + ')' : ''}`,
+      dateSortie: null
+    });
+    saveState();
+    renderAll();
+    e.target.reset();
+    document.getElementById('admissionDate').value = getTodayStr();
+    document.getElementById('insuranceSelectGroup').style.display = 'none';
+    showToast('Patient admis avec succès');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+function renderInsuranceTable() {
+  const activePatients = state.patients.filter(p => !p.dateSortie);
+  const tbody = document.getElementById('insuranceTableBody');
+  if (activePatients.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-shield-alt"></i><p>Aucun patient</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = activePatients.map(p => {
+    const detailsPEC = (p.pecs || []).length > 0 
+      ? p.pecs.map(pec => {
+          const badge = pec.statut === 'Accordée' ? 'success' : pec.statut === 'Refusée' ? 'danger' : 'warning';
+          const paiement = pec.prixReel - pec.montantPEC;
+          return `<span class="badge badge-${badge}" style="margin: 2px; padding: 6px 10px; display: inline-block;">
+            ${formatDate(pec.dateDebut)} → ${formatDate(pec.dateFin)}<br>
+            <small>Réel: ${formatMontant(pec.prixReel)} | PEC: ${formatMontant(pec.montantPEC)} | <strong>Patient: ${formatMontant(paiement)}</strong></small>
+          </span>`;
+        }).join(' ')
+      : '<span class="badge badge-secondary">Aucune PEC</span>';
+    return `
+      <tr>
+        <td><strong>${p.nom}</strong></td>
+        <td><span class="badge badge-info">${p.chambre}</span></td>
+        <td>${p.assurance === 'Non Assuré' ? '<span class="badge badge-danger">Non Assuré</span>' : `<span class="badge badge-success">${p.insuranceType}</span>`}</td>
+        <td>${detailsPEC}</td>
+        <td><strong>${(p.pecs || []).filter(pec => pec.statut === 'Accordée').length}</strong></td>
+        <td><div class="actions-cell"><button class="icon-btn edit" title="Configurer PEC" onclick="openPECModal(${p.id})"><i class="fas fa-cog"></i></button></div></td>
+      </tr>
+    `;
+  }).join('');
+}
+
+function openPECModal(patientId) {
+  const patient = state.patients.find(p => p.id === patientId);
+  if (!patient) return;
+  const pecs = patient.pecs || [];
+  const tarifNormal = TARIFS_NON_ASSURE[patient.typeChambre] || TARIFS_NON_ASSURE.Standard;
+  const tranchesHTML = pecs.map((pec, i) => `
+    <div class="tranche-item" data-index="${i}">
+      <div>
+        <div class="tranche-label">Date début</div>
+        <input type="date" class="form-control" value="${pec.dateDebut}">
+      </div>
+      <div>
+        <div class="tranche-label">Date fin</div>
+        <input type="date" class="form-control" value="${pec.dateFin}">
+      </div>
+      <div>
+        <div class="tranche-label">Prix réel (F)</div>
+        <input type="number" class="form-control tranche-prix" value="${pec.prixReel || tarifNormal}" min="0">
+      </div>
+      <div>
+        <div class="tranche-label">Montant PEC (F)</div>
+        <input type="number" class="form-control tranche-pec" value="${pec.montantPEC || 0}" min="0">
+      </div>
+      <div style="display: flex; align-items: flex-end;">
+        <button type="button" class="icon-btn delete" onclick="removeTranche(${i})"><i class="fas fa-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+  document.getElementById('pecModalBody').innerHTML = `
+    <div class="patient-info-grid">
+      <div class="info-item"><span class="label">Patient</span><span class="value">${patient.nom}</span></div>
+      <div class="info-item"><span class="label">Chambre</span><span class="value">${patient.chambre} (${patient.typeChambre})</span></div>
+      <div class="info-item"><span class="label">Assurance</span><span class="value">${patient.insuranceType || patient.assurance}</span></div>
+      <div class="info-item"><span class="label">Tarif normal</span><span class="value" style="color: var(--primary);">${formatMontant(tarifNormal)} / nuit</span></div>
+    </div>
+    <input type="hidden" id="pecPatientId" value="${patientId}">
+    <div class="form-group"><label>Statut de la demande</label>
+      <select class="form-control" id="pecStatut">
+        <option value="En attente">En attente</option>
+        <option value="Accordée">Accordée</option>
+        <option value="Refusée">Refusée</option>
+      </select>
+    </div>
+    ${patient.typeChambre === 'Réanimation' ? `
+      <div class="tarif-note">
+        <i class="fas fa-exclamation-triangle"></i>
+        <strong>Attention :</strong> La salle de Réanimation n'est pas prise en charge par les assurances. Tarif fixe : <strong>100 000 F/nuit</strong>.
+      </div>
+    ` : `
+      <div class="tarif-note info" style="margin-top: 15px;">
+        <i class="fas fa-calculator"></i>
+        <strong>Formule :</strong> Paiement du patient = Prix réel − Montant PEC<br>
+        <em>Exemple : Prix réel 23 000 F − PEC 5 000 F = Patient paie 18 000 F/nuit</em>
+      </div>
+    `}
+    <div class="section-title" style="font-size: 15px; margin-top: 20px;"><i class="fas fa-calendar-alt"></i> Tranches de prise en charge</div>
+    <div id="tranchesContainer">${tranchesHTML || '<p style="color: var(--gray); font-size: 13px;">Aucune tranche configurée</p>'}</div>
+    <button type="button" class="btn btn-primary btn-sm" onclick="addTranche()" style="margin-top: 10px;"><i class="fas fa-plus"></i> Ajouter une tranche</button>
+  `;
+  document.getElementById('pecModal').classList.add('active');
+}
+
+function addTranche() {
+  const container = document.getElementById('tranchesContainer');
+  if (container.querySelector('p')) container.innerHTML = '';
+  const patientId = parseInt(document.getElementById('pecPatientId').value);
+  const patient = state.patients.find(p => p.id === patientId);
+  const tarifNormal = TARIFS_NON_ASSURE[patient.typeChambre] || TARIFS_NON_ASSURE.Standard;
+  const index = container.querySelectorAll('.tranche-item').length;
+  const div = document.createElement('div');
+  div.className = 'tranche-item';
+  div.dataset.index = index;
+  div.innerHTML = `
+    <div>
+      <div class="tranche-label">Date début</div>
+      <input type="date" class="form-control" value="">
+    </div>
+    <div>
+      <div class="tranche-label">Date fin</div>
+      <input type="date" class="form-control" value="">
+    </div>
+    <div>
+      <div class="tranche-label">Prix réel (F)</div>
+      <input type="number" class="form-control tranche-prix" value="${tarifNormal}" min="0">
+    </div>
+    <div>
+      <div class="tranche-label">Montant PEC (F)</div>
+      <input type="number" class="form-control tranche-pec" value="5000" min="0">
+    </div>
+    <div style="display: flex; align-items: flex-end;">
+      <button type="button" class="icon-btn delete" onclick="this.parentElement.parentElement.remove()"><i class="fas fa-trash"></i></button>
+    </div>
+  `;
+  container.appendChild(div);
+}
+
+function removeTranche(index) {
+  const patientId = parseInt(document.getElementById('pecPatientId').value);
+  const patient = state.patients.find(p => p.id === patientId);
+  patient.pecs.splice(index, 1);
+  openPECModal(patientId);
+}
+
+async function savePEC() {
+  const patientId = document.getElementById('pecPatientId').value;
+  const patient = state.patients.find(p => String(p.id) === String(patientId));
+  const statut = document.getElementById('pecStatut').value;
+  const tranches = [];
+  document.querySelectorAll('#tranchesContainer .tranche-item').forEach(item => {
+    const inputs = item.querySelectorAll('input');
+    const dateDebut = inputs[0].value;
+    const dateFin = inputs[1].value;
+    const prixReel = parseFloat(inputs[2].value) || 0;
+    const montantPEC = parseFloat(inputs[3].value) || 0;
+    if (dateDebut && dateFin && prixReel > 0) {
+      tranches.push({ dateDebut, dateFin, prixReel, montantPEC, statut });
+    }
+  });
+
+  try {
+    if (state.backendMode) {
+      await apiRequest(`/api/insurance/${patientId}`, {
+        method: 'POST',
+        body: JSON.stringify({
+          insuranceType: patient?.insuranceType || 'AMU',
+          pecs: tranches,
+        }),
+      });
+      await loadBackendData();
+      closeModal('pecModal');
+      showToast('Prise en charge enregistrée');
+      return;
+    }
+
+    patient.pecs = tranches;
+    regeneratePayments(patientId);
+    saveState();
+    closeModal('pecModal');
+    renderAll();
+    showToast('Prise en charge enregistrée');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+function regeneratePayments(patientId) {
+  const patient = state.patients.find(p => p.id === patientId);
+  if (!patient || patient.dateSortie) return;
+  // UTILISATION DE getTodayStr() pour la cohérence
+  const todayStr = getTodayStr();
+  const oldPaiements = state.paiements[patientId] || {};
+  regeneratePaymentsForPatient(patient, todayStr);
+  Object.keys(state.paiements[patientId]).forEach(dateStr => {
+    if (oldPaiements[dateStr]) {
+      state.paiements[patientId][dateStr].paye = oldPaiements[dateStr].paye;
+      state.paiements[patientId][dateStr].modifie = oldPaiements[dateStr].modifie;
+      if (oldPaiements[dateStr].modifie) {
+        state.paiements[patientId][dateStr].montant = oldPaiements[dateStr].montant;
+      }
+    }
+  });
+}
+
+function renderExitTable() {
+  const activePatients = state.patients.filter(p => !p.dateSortie);
+  const tbody = document.getElementById('exitTableBody');
+  if (activePatients.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><i class="fas fa-sign-out-alt"></i><p>Aucun patient hospitalisé</p></div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = activePatients.map(p => `
+    <tr>
+      <td><strong>${p.nom}</strong></td>
+      <td><span class="badge badge-info">${p.chambre}</span></td>
+      <td>${formatDate(p.dateAdmission)}</td>
+      <td>${p.assurance === 'Non Assuré' ? '<span class="badge badge-danger">Non Assuré</span>' : `<span class="badge badge-success">${p.insuranceType}</span>`}</td>
+      <td><div class="actions-cell"><button class="btn btn-danger btn-sm" onclick="openExitModal(${p.id})"><i class="fas fa-sign-out-alt"></i> Sortie</button></div></td>
+    </tr>
+  `).join('');
+}
+
+function openExitModal(patientId) {
+  document.getElementById('exitPatientId').value = patientId;
+  document.getElementById('exitDate').value = getTodayStr();
+  document.getElementById('exitType').value = 'Exéat';
+  document.getElementById('exitModal').classList.add('active');
+}
+
+async function confirmExit() {
+  const patientId = document.getElementById('exitPatientId').value;
+  const typeSortie = document.getElementById('exitType').value;
+  const dateSortie = document.getElementById('exitDate').value;
+  const patient = state.patients.find(p => String(p.id) === String(patientId));
+  if (!patient) return;
+
+  try {
+    if (state.backendMode) {
+      await apiRequest(`/api/patients/${patientId}/exit`, {
+        method: 'POST',
+        body: JSON.stringify({ typeSortie, dateSortie }),
+      });
+      await loadBackendData();
+      closeModal('exitModal');
+      showToast(`${typeSortie} enregistré pour ${patient.nom}`);
+      return;
+    }
+
+    patient.dateSortie = dateSortie;
+    patient.typeSortie = typeSortie;
+    regeneratePaymentsForPatient(patient, dateSortie);
+    state.history.push({
+      id: Date.now(),
+      date: new Date().toISOString(),
+      type: typeSortie,
+      patient: patient.nom,
+      chambre: patient.chambre,
+      details: `${patient.typeChambre} - ${patient.assurance}`,
+      dateSortie: dateSortie
+    });
+    saveState();
+    closeModal('exitModal');
+    renderAll();
+    showToast(`${typeSortie} enregistré pour ${patient.nom}`);
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+function renderHistory() {
+  const tbody = document.getElementById('historyTableBody');
+  if (state.history.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-history"></i><p>Aucun historique</p></div></td></tr>`;
+    return;
+  }
+  const sorted = [...state.history].sort((a, b) => new Date(b.date) - new Date(a.date));
+  tbody.innerHTML = sorted.map(h => `
+    <tr>
+      <td>${new Date(h.date).toLocaleString('fr-FR')}</td>
+      <td><span class="badge badge-${h.type === 'Admission' ? 'success' : 'danger'}">${h.type}</span></td>
+      <td><strong>${h.patient}</strong></td>
+      <td><span class="badge badge-info">${h.chambre}</span></td>
+      <td>${h.details}</td>
+      <td>${h.dateSortie ? formatDate(h.dateSortie) : '-'}</td>
+    </tr>
+  `).join('');
+}
+
+function resetHistory() {
+  if (!confirm('Voulez-vous vraiment réinitialiser l\'historique ?')) return;
+  state.history = [];
+  saveState();
+  renderHistory();
+  showToast('Historique réinitialisé');
+}
+
+function renderPaymentsTable() {
+  const activePatients = state.patients.filter(p => !p.dateSortie);
+  const search = (document.getElementById('paySearchInput')?.value || '').toLowerCase();
+  const filtered = activePatients.filter(p => 
+    p.nom.toLowerCase().includes(search) || p.chambre.toLowerCase().includes(search)
+  );
+  let totalAmount = 0, paidAmount = 0, unpaidAmount = 0;
+  let totalNights = 0, paidNights = 0, unpaidNights = 0;
+  const tbody = document.getElementById('paymentsTableBody');
+  // UTILISATION DE getTodayStr() pour la cohérence avec le tableau de bord
+  const today = getTodayStr();
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><i class="fas fa-inbox"></i><p>Aucun patient</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = filtered.map((p, i) => {
+      // S'assurer que les paiements sont à jour avec la même date
+      if (!state.paiements[p.id]) {
+        regeneratePaymentsForPatient(p, today);
+      }
+      // Synchronisation : régénérer si le nombre de paiements ne correspond pas aux nuitées
+      const nuitsSejour = countNights(p.dateAdmission, p.dateSortie || today);
+      const paiementsCount = Object.keys(state.paiements[p.id] || {}).length;
+      if (paiementsCount !== nuitsSejour) {
+        regeneratePayments(p.id);
+      }
+      const stats = getPatientStats(p.id);
+      totalNights += nuitsSejour;
+      paidNights += stats.paidDays;
+      unpaidNights += stats.unpaidDays;
+      totalAmount += stats.totalAmount;
+      paidAmount += stats.paidAmount;
+      unpaidAmount += stats.unpaidAmount;
+      return `
+        <tr>
+          <td><strong>${i + 1}</strong></td>
+          <td><strong>${p.nom}</strong></td>
+          <td><span class="badge badge-info">${p.chambre}</span> <small style="color:var(--gray)">${p.typeChambre}</small></td>
+          <td>${p.assurance === 'Non Assuré' ? '<span class="badge badge-danger">Non Assuré</span>' : `<span class="badge badge-success">${p.insuranceType}</span>`}</td>
+          <td><strong>${nuitsSejour}</strong> n</td>
+          <td><span class="amount positive">${stats.paidDays}</span> n</td>
+          <td><span class="amount negative">${stats.unpaidDays}</span> n</td>
+          <td><span class="amount positive">${formatMontant(stats.paidAmount)}</span></td>
+          <td><span class="amount negative">${formatMontant(stats.unpaidAmount)}</span></td>
+          <td>
+            <div class="actions-cell">
+              <button class="icon-btn view" title="Détails" onclick="viewPaymentDetails(${p.id})"><i class="fas fa-eye"></i></button>
+              <button class="icon-btn pay" title="Tout payer" onclick="markAllPaid(${p.id})"><i class="fas fa-check-double"></i></button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+  document.getElementById('payTotal').textContent = formatMontant(totalAmount);
+  document.getElementById('payPaid').textContent = formatMontant(paidAmount);
+  document.getElementById('payUnpaid').textContent = formatMontant(unpaidAmount);
+  document.getElementById('payPatients').textContent = activePatients.length;
+  document.getElementById('payTotalDays').textContent = `${totalNights} nuit(s) au total`;
+  document.getElementById('payPaidDays').textContent = `${paidNights} nuit(s) payée(s)`;
+  document.getElementById('payUnpaidDays').textContent = `${unpaidNights} nuit(s) non payée(s)`;
+}
+
+function viewPaymentDetails(patientId) {
+  const patient = state.patients.find(p => p.id === patientId);
+  if (!patient) {
+    showToast('Patient introuvable', 'error');
+    return;
+  }
+  // UTILISATION DE getTodayStr() pour la cohérence
+  const today = getTodayStr();
+  const totalNuitsSejour = countNights(patient.dateAdmission, patient.dateSortie || today);
+  
+  // Synchronisation automatique
+  const paiementsExistants = state.paiements[patientId] || {};
+  const nombrePaiements = Object.keys(paiementsExistants).length;
+  if (nombrePaiements !== totalNuitsSejour) {
+    regeneratePayments(patientId);
+  }
+  
+  const paiements = state.paiements[patientId] || {};
+  let nuitsPayees = 0;
+  let nuitsNonPayees = 0;
+  let montantPaye = 0;
+  let montantNonPaye = 0;
+  let montantTotal = 0;
+  Object.entries(paiements).forEach(([date, data]) => {
+    montantTotal += data.montant;
+    if (data.paye) {
+      nuitsPayees++;
+      montantPaye += data.montant;
+    } else {
+      nuitsNonPayees++;
+      montantNonPaye += data.montant;
+    }
+  });
+  const days = Object.entries(paiements)
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, data], index) => {
+      const pec = getPecForDate(patient, date);
+      const canEdit = pec !== null && patient.typeChambre !== 'Réanimation';
+      const isNonAssureTarif = patient.assurance === 'Assuré' && !pec && patient.typeChambre !== 'Réanimation';
+      let pecCell = '';
+      if (pec) {
+        const paiement = pec.prixReel - pec.montantPEC;
+        pecCell = `
+          <div style="font-size: 11px;">
+            <span class="badge badge-success">PEC active</span><br>
+            <small>Prix réel : <strong>${formatMontant(pec.prixReel)}</strong></small><br>
+            <small>PEC : <strong>${formatMontant(pec.montantPEC)}</strong></small><br>
+            <strong style="color: var(--primary);">Patient paie : ${formatMontant(paiement)}</strong>
+          </div>
+        `;
+      } else {
+        pecCell = `<span class="badge badge-danger">Sans PEC</span>`;
+      }
+      if (isNonAssureTarif) {
+        pecCell += `<br><span class="badge badge-warning" style="font-size: 10px; margin-top: 4px;">Tarif Non Assuré</span>`;
+      }
+      return `
+        <tr>
+          <td><strong>${index + 1}</strong></td>
+          <td>${formatDate(date)}</td>
+          <td>${pecCell}</td>
+          <td class="amount"><strong>${formatMontant(data.montant)}</strong>${data.modifie ? ' <i class="fas fa-edit" style="color:var(--warning)" title="Modifié"></i>' : ''}</td>
+          <td>${data.paye 
+            ? '<span class="badge badge-success"><i class="fas fa-check"></i> Payé</span>' 
+            : '<span class="badge badge-danger"><i class="fas fa-times"></i> Non payé</span>'}</td>
+          <td>
+            <div class="actions-cell">
+              ${!data.paye ? `
+                <button class="icon-btn pay" title="Marquer payé" onclick="markDayPaid(${patientId}, '${date}')"><i class="fas fa-check"></i></button>
+              ` : `
+                <button class="icon-btn edit" title="Annuler paiement" onclick="markDayUnpaid(${patientId}, '${date}')"><i class="fas fa-undo"></i></button>
+              `}
+              ${canEdit ? `
+                <button class="icon-btn edit" title="Modifier montant" onclick="openEditAmount(${patientId}, '${date}', ${data.montant}, ${pec ? pec.prixReel : 0}, ${pec ? pec.montantPEC : 0})"><i class="fas fa-edit"></i></button>
+              ` : ''}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  document.getElementById('paymentModalBody').innerHTML = `
+    <div class="patient-info-grid">
+      <div class="info-item"><span class="label">Patient</span><span class="value">${patient.nom}</span></div>
+      <div class="info-item"><span class="label">Chambre</span><span class="value">${patient.chambre} (${patient.typeChambre})</span></div>
+      <div class="info-item"><span class="label">Assurance</span><span class="value">${patient.insuranceType || patient.assurance}</span></div>
+      <div class="info-item"><span class="label">Admission</span><span class="value">${formatDate(patient.dateAdmission)}</span></div>
+      <div class="info-item"><span class="label">Durée séjour</span><span class="value" style="color: var(--primary);">${totalNuitsSejour} nuit(s)</span></div>
+    </div>
+    <div class="payment-summary">
+      <div class="summary-card total">
+        <div class="s-label">Total Nuits Séjour</div>
+        <div class="s-value">${totalNuitsSejour}</div>
+        <div class="s-sub">${formatMontant(montantTotal)}</div>
+      </div>
+      <div class="summary-card paid">
+        <div class="s-label">Nuits Payées</div>
+        <div class="s-value">${nuitsPayees}</div>
+        <div class="s-sub">${formatMontant(montantPaye)}</div>
+      </div>
+      <div class="summary-card unpaid">
+        <div class="s-label">Nuits Non Payées</div>
+        <div class="s-value">${nuitsNonPayees}</div>
+        <div class="s-sub">${formatMontant(montantNonPaye)}</div>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>Nuit</th><th>Date</th><th>Détail tarifaire</th><th>Montant</th><th>Statut</th><th>Actions</th></tr>
+        </thead>
+        <tbody>${days || '<tr><td colspan="6"><div class="empty-state"><p>Aucun paiement</p></div></td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+  document.getElementById('paymentModal').classList.add('active');
+}
+
+async function markDayPaid(patientId, date) {
+  try {
+    if (state.backendMode) {
+      const payments = (await apiRequest(`/api/payments/patient/${patientId}`)).data || [];
+      const payment = payments.find((item) => item.date?.split('T')[0] === date);
+      if (!payment) throw new Error('Paiement introuvable');
+      await apiRequest(`/api/payments/${payment._id}/mark-paid`, { method: 'PUT' });
+      await loadBackendData();
+      viewPaymentDetails(patientId);
+      renderPaymentsTable();
+      showToast('Nuitée marquée payée');
+      return;
+    }
+
+    if (state.paiements[patientId] && state.paiements[patientId][date]) {
+      state.paiements[patientId][date].paye = true;
+      saveState();
+      viewPaymentDetails(patientId);
+      renderPaymentsTable();
+      showToast('Nuitée marquée payée');
+    }
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+async function markDayUnpaid(patientId, date) {
+  try {
+    if (state.backendMode) {
+      const payments = (await apiRequest(`/api/payments/patient/${patientId}`)).data || [];
+      const payment = payments.find((item) => item.date?.split('T')[0] === date);
+      if (!payment) throw new Error('Paiement introuvable');
+      await apiRequest(`/api/payments/${payment._id}/mark-unpaid`, { method: 'PUT' });
+      await loadBackendData();
+      viewPaymentDetails(patientId);
+      renderPaymentsTable();
+      return;
+    }
+
+    if (state.paiements[patientId] && state.paiements[patientId][date]) {
+      state.paiements[patientId][date].paye = false;
+      saveState();
+      viewPaymentDetails(patientId);
+      renderPaymentsTable();
+    }
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+function markAllPaid(patientId) {
+  if (!confirm('Marquer toutes les nuitées comme payées ?')) return;
+  if (state.paiements[patientId]) {
+    Object.keys(state.paiements[patientId]).forEach(date => {
+      state.paiements[patientId][date].paye = true;
+    });
+    saveState();
+    renderPaymentsTable();
+    showToast('Tous les paiements validés');
+  }
+}
+
+function openEditAmount(patientId, date, montant, prixReel, montantPEC) {
+  document.getElementById('editPatientId').value = patientId;
+  document.getElementById('editDayDate').value = date;
+  document.getElementById('editDate').value = formatDate(date);
+  document.getElementById('editPEC').value = `Prix réel : ${formatMontant(prixReel)} | PEC : ${formatMontant(montantPEC)} | Calculé : ${formatMontant(prixReel - montantPEC)}`;
+  document.getElementById('editAmount').value = montant;
+  document.getElementById('editAmountModal').classList.add('active');
+}
+
+async function saveEditedAmount() {
+  const patientId = document.getElementById('editPatientId').value;
+  const date = document.getElementById('editDayDate').value;
+  const nouveauMontant = parseFloat(document.getElementById('editAmount').value);
+  if (isNaN(nouveauMontant) || nouveauMontant < 0) {
+    showToast('Montant invalide', 'error'); return;
+  }
+
+  try {
+    if (state.backendMode) {
+      const payments = (await apiRequest(`/api/payments/patient/${patientId}`)).data || [];
+      const payment = payments.find((item) => item.date?.split('T')[0] === date);
+      if (!payment) throw new Error('Paiement introuvable');
+      await apiRequest(`/api/payments/${payment._id}/edit-amount`, {
+        method: 'PUT',
+        body: JSON.stringify({ montantReel: nouveauMontant }),
+      });
+      await loadBackendData();
+      closeModal('editAmountModal');
+      viewPaymentDetails(patientId);
+      renderPaymentsTable();
+      showToast('Montant modifié');
+      return;
+    }
+
+    state.paiements[patientId][date].montant = nouveauMontant;
+    state.paiements[patientId][date].modifie = true;
+    saveState();
+    closeModal('editAmountModal');
+    viewPaymentDetails(patientId);
+    renderPaymentsTable();
+    showToast('Montant modifié');
+  } catch (error) {
+    showToast(error.message, 'error');
+  }
+}
+
+function exportPaymentsCSV() {
+  let csv = 'Patient,Chambre,Assurance,Nuits Séjour,Nuits Payées,Nuits Non Payées,Total Payé,Total Dû\n';
+  const today = getTodayStr();
+  state.patients.filter(p => !p.dateSortie).forEach(p => {
+    const stats = getPatientStats(p.id);
+    const nuitsSejour = countNights(p.dateAdmission, today);
+    csv += `"${p.nom}","${p.chambre}","${p.insuranceType || p.assurance}",${nuitsSejour},${stats.paidDays},${stats.unpaidDays},${stats.paidAmount},${stats.unpaidAmount}\n`;
+  });
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `paiements_${getTodayStr()}.csv`;
+  link.click();
+  showToast('Export CSV réussi');
+}
+
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) overlay.classList.remove('active');
+  });
+});
+
+init();
+</script>
+</body>
+</html>
