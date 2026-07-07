@@ -3,7 +3,7 @@ import Joi from 'joi';
 export const validateRegister = (data) => {
   const schema = Joi.object({
     username: Joi.string().alphanum().min(3).max(30).required(),
-    email: Joi.string().email().required(),
+    email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: false } }).required(),
     password: Joi.string().min(6).required(),
   });
 
@@ -12,7 +12,7 @@ export const validateRegister = (data) => {
 
 export const validateLogin = (data) => {
   const schema = Joi.object({
-    email: Joi.string().email().required(),
+    email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: false } }).required(),
     password: Joi.string().required(),
   });
 
@@ -38,7 +38,7 @@ export const validatePatient = (data) => {
     nom: Joi.string().required(),
     prenom: Joi.string(),
     telephone: Joi.string(),
-    email: Joi.string().email(),
+    email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: false } }),
     adresse: Joi.string(),
     chambreId: Joi.string().required(),
     dateAdmission: Joi.date().required(),
