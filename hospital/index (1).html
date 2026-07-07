@@ -617,7 +617,6 @@
       <div class="form-group">
         <label>Mot de passe</label>
         <input type="password" class="form-control" id="password" placeholder="Mot de passe" required>
-        <small style="color: var(--gray);">* Utilisez l’email et le mot de passe du backend</small>
       </div>
       <button type="submit" class="btn btn-primary btn-block">
         <i class="fas fa-sign-in-alt"></i> Se connecter
@@ -1059,7 +1058,10 @@ async function loadRuntimeConfig() {
       state.apiBaseUrl = data.backendUrl;
     }
   } catch (error) {
-    console.warn('Config runtime non disponible, utilisation du fallback local:', error);
+    console.warn('Config runtime non disponible, utilisation du fallback direct:', error);
+  }
+  if (!state.apiBaseUrl) {
+    state.apiBaseUrl = 'https://hospital-wkgw.onrender.com';
   }
   state.configLoaded = true;
 }
@@ -1078,14 +1080,20 @@ async function apiRequest(path, options = {}) {
     ...(options.headers || {}),
   };
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-  });
+  let response;
+  try {
+    response = await fetch(url, {
+      ...options,
+      headers,
+    });
+  } catch (error) {
+    throw new Error(`Impossible de joindre l’API (${url}) : ${error.message}`);
+  }
 
   const data = await response.json().catch(() => null);
   if (!response.ok) {
-    throw new Error(data?.error || 'Erreur réseau avec l’API');
+    const message = data?.error || data?.message || `${response.status} ${response.statusText}`;
+    throw new Error(`Erreur API (${response.status}): ${message}`);
   }
   return data;
 }
@@ -1320,6 +1328,12 @@ async function login(e) {
   e.preventDefault();
   const email = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
+
+  if (!email || !password) {
+    document.getElementById('loginError').textContent = '⚠️ Veuillez renseigner l’email et le mot de passe.';
+    document.getElementById('loginError').classList.add('show');
+    return;
+  }
 
   try {
     const response = await apiRequest('/api/auth/login', {
