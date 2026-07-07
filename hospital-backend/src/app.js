@@ -32,7 +32,7 @@ const allowedOrigins = process.env.CORS_ORIGIN
   : [];
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow non-browser requests
+    if (!origin || origin === 'null') return callback(null, true); // allow local file:// preview or null-origin requests
     if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
