@@ -19,7 +19,7 @@ services:
       - key: CORS_ORIGIN
         value: https://hospital-lac-mu.vercel.app,http://localhost:3000
       - key: DEFAULT_ADMIN_EMAIL
-        value: admin@hospital.local
+        value: togohpaul@gmail.com
       - key: DEFAULT_ADMIN_PASSWORD
         value: admin123
       - key: DEFAULT_ADMIN_USERNAME

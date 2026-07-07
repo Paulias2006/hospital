@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnostic API - Hospital EL-ELYON</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .header h1 { font-size: 32px; margin-bottom: 10px; }
+    .header p { font-size: 16px; opacity: 0.9; }
+    .content { padding: 40px; }
+    .section {
+      margin: 30px 0;
+      padding: 20px;
+      border-radius: 8px;
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+    }
+    .section h2 {
+      color: #333;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section.error { border-left-color: #dc3545; background: #fff5f5; }
+    .section.success { border-left-color: #198754; background: #f5fff5; }
+    .section.warning { border-left-color: #ffc107; background: #fffef5; }
+    .section.info { border-left-color: #0dcaf0; background: #f5ffff; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0;
+    }
+    table th, table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #dee2e6;
+    }
+    table th { background: #e9ecef; font-weight: 600; }
+    table tr:hover { background: #f0f0f0; }
+    .status-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-ok { background: #d4edda; color: #155724; }
+    .status-error { background: #f8d7da; color: #721c24; }
+    .status-warning { background: #fff3cd; color: #856404; }
+    .code-block {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      margin: 10px 0;
+      line-height: 1.5;
+    }
+    .code-block .diff-add { color: #a6e22e; }
+    .code-block .diff-remove { color: #f92672; }
+    .code-block .diff-context { color: #75715e; }
+    .action-item {
+      margin: 15px 0;
+      padding: 15px;
+      background: white;
+      border: 1px solid #dee2e6;
+      border-radius: 6px;
+      display: flex;
+      gap: 15px;
+    }
+    .action-number {
+      background: #667eea;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    .action-content h3 { color: #333; margin-bottom: 5px; }
+    .action-content p { color: #666; font-size: 14px; margin-bottom: 10px; }
+    .cmd {
+      background: #2d2d2d;
+      color: #a6e22e;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+      display: inline-block;
+    }
+    .timeline {
+      position: relative;
+      padding-left: 30px;
+    }
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 10px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: #667eea;
+    }
+    .timeline-item {
+      margin-bottom: 20px;
+      position: relative;
+    }
+    .timeline-item::before {
+      content: '';
+      position: absolute;
+      left: -24px;
+      top: 5px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: #667eea;
+      border: 2px solid white;
+    }
+    .timeline-item.done::before { background: #198754; }
+    .timeline-item h4 { color: #333; margin-bottom: 5px; }
+    .timeline-item p { color: #666; font-size: 14px; }
+    .footer {
+      background: #f8f9fa;
+      padding: 20px;
+      text-align: center;
+      color: #666;
+      border-top: 1px solid #dee2e6;
+      font-size: 13px;
+    }
+    .badge-major { background: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .badge-imp { background: #ffc107; color: black; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+    .badge-opt { background: #17a2b8; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏥 Hospital EL-ELYON</h1>
+      <p>Diagnostic Complet de l'Erreur API</p>
+    </div>
+
+    <div class="content">
+      <!-- ERREUR IDENTIFIÉE -->
+      <div class="section error">
+        <h2>⚠️ ERREUR SIGNALÉE</h2>
+        <p style="color: #721c24; font-weight: 600;">Impossible de joindre l'API (https://hospital-wkgw.onrender.com/api/auth/login) : Failed to fetch</p>
+      </div>
+
+      <!-- RÉSULTATS TESTS -->
+      <div class="section success">
+        <h2>✅ RÉSULTATS DES TESTS</h2>
+        <table>
+          <tr>
+            <th>Endpoint</th>
+            <th>Status</th>
+            <th>Latence</th>
+            <th>Résultat</th>
+          </tr>
+          <tr>
+            <td><strong>GET /health</strong></td>
+            <td><span class="status-badge status-ok">200 OK</span></td>
+            <td>473ms</td>
+            <td>✅ API DISPONIBLE</td>
+          </tr>
+          <tr>
+            <td><strong>POST /api/auth/login</strong></td>
+            <td><span class="status-badge status-warning">400 ERROR</span></td>
+            <td>N/A</td>
+            <td>⚠️ Validation Email</td>
+          </tr>
+          <tr>
+            <td><strong>Network Test</strong></td>
+            <td><span class="status-badge status-ok">OK</span></td>
+            <td>473ms</td>
+            <td>✅ Connectivité OK</td>
+          </tr>
+          <tr>
+            <td><strong>CORS Headers</strong></td>
+            <td><span class="status-badge status-ok">OK</span></td>
+            <td>N/A</td>
+            <td>✅ Autorisé depuis Vercel</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- ANALYSE ROOT CAUSE -->
+      <div class="section info">
+        <h2>🔍 ANALYSE ROOT CAUSE</h2>
+        
+        <h3 style="margin-top: 20px; margin-bottom: 10px;">❌ CE N'EST PAS:</h3>
+        <ul style="margin-left: 20px; color: #666;">
+          <li>L'API est down (elle répond 200)</li>
+          <li>Un problème Render.com hibernation (elle répond)</li>
+          <li>Un problème CORS (les headers CORS sont reçus)</li>
+          <li>Un problème réseau/connectivité (latence 473ms ok)</li>
+        </ul>
+
+        <h3 style="margin-top: 20px; margin-bottom: 10px;">✅ C'EST VRAIMENT:</h3>
+        <div style="background: #fff5f5; border: 1px solid #f8d7da; padding: 15px; border-radius: 6px; margin-left: 0;">
+          <strong style="color: #721c24;">Validateur d'email trop strict</strong>
+          <ul style="margin-left: 20px; color: #721c24; margin-top: 10px;">
+            <li>Le domaine <strong>.local</strong> n'est pas accepté par défaut par Joi</li>
+            <li>L'email <strong>admin@hospital.local</strong> est rejeté</li>
+            <li>API retourne: <strong>400 Bad Request</strong> avec message: "email" must be a valid email</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- FIX APPLIQUÉ -->
+      <div class="section success">
+        <h2>✓ FIX APPLIQUÉ</h2>
+        <div class="action-item">
+          <div class="action-number" style="background: #198754;">✓</div>
+          <div class="action-content">
+            <h3>Validateur Emails Corrigé</h3>
+            <p>Modifié <span class="cmd">hospital-backend/src/utils/validators.js</span> pour accepter les domaines custom comme .local</p>
+            <div class="code-block">
+<span class="diff-remove">- email: Joi.string().email().required()</span>
+<span class="diff-add">+ email: Joi.string().email({ minDomainSegments: 2, tlds: { allow: false } }).required()</span>
+            </div>
+            <p style="margin-top: 10px;"><strong>Fonctions mises à jour:</strong></p>
+            <ul style="margin-left: 20px; font-size: 13px;">
+              <li>validateLogin()</li>
+              <li>validateRegister()</li>
+              <li>validatePatient()</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- PLAN D'ACTION -->
+      <div class="section warning">
+        <h2>🚀 PLAN D'ACTION POUR CORRIGER</h2>
+        
+        <div class="timeline">
+          <div class="timeline-item done">
+            <h4>1️⃣ Code Backend Modifié ✅</h4>
+            <p>Les validateurs acceptent maintenant les domaines .local</p>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>2️⃣ Tester Localement (PROCHAINE ÉTAPE)</h4>
+            <p>Vérifier que le fix fonctionne sur le backend local</p>
+            <div class="code-block">cd hospital-backend
+npm start</div>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>3️⃣ Pusher sur Git</h4>
+            <p>Commiter les modifications</p>
+            <div class="code-block">git add src/utils/validators.js
+git commit -m "fix: accept .local domain in email validators"
+git push origin backend</div>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>4️⃣ Redéployer sur Render</h4>
+            <p>Déployer le nouveau code sur le serveur de production</p>
+            <ul style="margin-left: 20px; font-size: 13px;">
+              <li>Allez sur: https://dashboard.render.com</li>
+              <li>Sélectionnez: <strong>hospital-elyon-backend</strong></li>
+              <li>Cliquez: <strong>Manual Deploy</strong> → <strong>Deploy Latest Commit</strong></li>
+              <li>Attendez: 2-3 minutes</li>
+            </ul>
+          </div>
+          
+          <div class="timeline-item">
+            <h4>5️⃣ Tester sur Render</h4>
+            <p>Vérifier que le login fonctionne maintenant</p>
+            <div class="code-block">curl -X POST https://hospital-wkgw.onrender.com/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"admin@hospital.local","password":"admin123"}'</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RECOMMANDATIONS -->
+      <div class="section info">
+        <h2>💡 RECOMMANDATIONS ADDITIONNELLES</h2>
+        
+        <div class="action-item">
+          <div class="action-number">1</div>
+          <div class="action-content">
+            <h3><span class="badge-imp">IMPORTANT</span> Améliorer Frontend Error Handling</h3>
+            <p>Le frontend affiche "Failed to fetch" au lieu de l'erreur réelle. Il faudrait améliorer la gestion des erreurs pour montrer le message d'erreur exact de l'API.</p>
+            <p style="margin-top: 10px; font-size: 12px; color: #999;">Fichier: <span class="cmd">hospital/index (1).html</span> ligne ~1085</p>
+          </div>
+        </div>
+
+        <div class="action-item">
+          <div class="action-number">2</div>
+          <div class="action-content">
+            <h3><span class="badge-opt">BONUS</span> Ajouter Logging Détaillé</h3>
+            <p>Ajouter des logs côté backend et frontend pour déboguer les erreurs plus facilement à l'avenir.</p>
+            <p style="margin-top: 10px; font-size: 12px; color: #999;">Facilite le diagnostic des problèmes en production</p>
+          </div>
+        </div>
+
+        <div class="action-item">
+          <div class="action-number">3</div>
+          <div class="action-content">
+            <h3><span class="badge-opt">BONUS</span> Tester les Autres Endpoints</h3>
+            <p>Vérifier que les autres endpoints d'authentification (register, logout) fonctionnent correctement avec les emails .local</p>
+            <p style="margin-top: 10px; font-size: 12px; color: #999;">Assure la cohérence sur tous les endpoints</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- RÉSUMÉ -->
+      <div class="section success">
+        <h2>📊 RÉSUMÉ FINAL</h2>
+        <table>
+          <tr>
+            <th>Aspect</th>
+            <th>Status</th>
+            <th>Détails</th>
+          </tr>
+          <tr>
+            <td><strong>API Disponibilité</strong></td>
+            <td><span class="status-badge status-ok">✅ OK</span></td>
+            <td>Render.com répond correctement</td>
+          </tr>
+          <tr>
+            <td><strong>CORS Configuration</strong></td>
+            <td><span class="status-badge status-ok">✅ OK</span></td>
+            <td>Vercel est autorisé à faire des requêtes</td>
+          </tr>
+          <tr>
+            <td><strong>Réseau/Connectivité</strong></td>
+            <td><span class="status-badge status-ok">✅ OK</span></td>
+            <td>473ms latence - excellent</td>
+          </tr>
+          <tr>
+            <td><strong>Validation Email</strong></td>
+            <td><span class="status-badge status-ok">✅ CORRIGÉ</span></td>
+            <td>.local accepté maintenant</td>
+          </tr>
+          <tr>
+            <td><strong>Frontend Error Display</strong></td>
+            <td><span class="status-badge status-warning">⚠️ À AMÉLIORER</span></td>
+            <td>Affiche "Failed to fetch" au lieu de l'erreur réelle</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- STATUT FINAL -->
+      <div class="section success">
+        <h2>🎯 STATUT FINAL</h2>
+        <p style="margin: 10px 0;"><strong>✅ Backend Fix:</strong> APPLIQUÉ - Validators acceptent maintenant .local</p>
+        <p style="margin: 10px 0;"><strong>⏳ Redéploiement:</strong> EN ATTENTE - Besoin de pusher sur Git et déployer sur Render</p>
+        <p style="margin: 10px 0;"><strong>⚠️ Frontend Amélioration:</strong> OPTIONNEL - Meilleure gestion des erreurs recommandée</p>
+        <p style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #c3e6cb; color: #155724; font-weight: 600;">✅ PRÊT À REDÉPLOYER!</p>
+      </div>
+
+    </div>
+
+    <div class="footer">
+      <p>🏥 Hospital EL-ELYON - Diagnostic API Complet</p>
+      <p>Généré: 2026-07-07 | Copilot Diagnostic Engine</p>
+    </div>
+  </div>
+</body>
+</html>

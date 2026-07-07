@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test API - Hospital EL-ELYON</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 50px auto;
+      padding: 20px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    h1 { color: #0d6efd; text-align: center; }
+    .test-btn {
+      padding: 12px 24px;
+      background: #0d6efd;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      margin: 10px 5px;
+    }
+    .test-btn:hover { background: #0a58ca; }
+    .result {
+      margin: 20px 0;
+      padding: 15px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .loading { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    .test-section { margin: 20px 0; }
+    .test-section h3 { color: #333; margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏥 Test API - Hospital EL-ELYON</h1>
+    
+    <div class="test-section">
+      <h3>Health Check (GET /health)</h3>
+      <button class="test-btn" onclick="testHealth()">Tester Health</button>
+      <div id="healthResult"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Login API (POST /api/auth/login)</h3>
+      <button class="test-btn" onclick="testLogin()">Tester Login</button>
+      <div id="loginResult"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>CORS Check</h3>
+      <button class="test-btn" onclick="testCORS()">Tester CORS Headers</button>
+      <div id="corsResult"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Network Test</h3>
+      <button class="test-btn" onclick="testNetwork()">Tester Connectivité</button>
+      <div id="networkResult"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>Full Request Flow</h3>
+      <button class="test-btn" onclick="fullTest()">Lancer Tous les Tests</button>
+      <div id="fullResult"></div>
+    </div>
+  </div>
+
+  <script>
+    const API_URL = 'https://hospital-wkgw.onrender.com';
+
+    async function testHealth() {
+      const resultEl = document.getElementById('healthResult');
+      resultEl.className = 'result loading';
+      resultEl.textContent = '⏳ Test en cours...';
+
+      try {
+        const response = await fetch(`${API_URL}/health`);
+        const data = await response.json();
+        resultEl.className = 'result success';
+        resultEl.textContent = `✅ Succès (${response.status})\n${JSON.stringify(data, null, 2)}`;
+      } catch (error) {
+        resultEl.className = 'result error';
+        resultEl.textContent = `❌ Erreur: ${error.message}\n\nType: ${error.constructor.name}`;
+      }
+    }
+
+    async function testLogin() {
+      const resultEl = document.getElementById('loginResult');
+      resultEl.className = 'result loading';
+      resultEl.textContent = '⏳ Test login en cours...';
+
+      try {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: 'admin@hospital.local',
+            password: 'admin123'
+          })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+          resultEl.className = 'result success';
+          resultEl.textContent = `✅ Login Succès (${response.status})\n${JSON.stringify(data, null, 2)}`;
+        } else {
+          resultEl.className = 'result error';
+          resultEl.textContent = `⚠️ Erreur API (${response.status})\n${JSON.stringify(data, null, 2)}`;
+        }
+      } catch (error) {
+        resultEl.className = 'result error';
+        resultEl.textContent = `❌ Erreur Fetch: ${error.message}\n\nCette erreur signifie:\n- L'API n'est pas accessible\n- Problème CORS\n- Problème de connectivité réseau`;
+      }
+    }
+
+    async function testCORS() {
+      const resultEl = document.getElementById('corsResult');
+      resultEl.className = 'result loading';
+      resultEl.textContent = '⏳ Test CORS en cours...';
+
+      try {
+        const response = await fetch(`${API_URL}/health`, {
+          method: 'OPTIONS'
+        });
+
+        const corsHeaders = {
+          'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin'),
+          'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods'),
+          'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers'),
+          'Access-Control-Allow-Credentials': response.headers.get('Access-Control-Allow-Credentials')
+        };
+
+        resultEl.className = 'result success';
+        resultEl.textContent = `✅ CORS Headers Reçus:\n${JSON.stringify(corsHeaders, null, 2)}`;
+      } catch (error) {
+        resultEl.className = 'result error';
+        resultEl.textContent = `⚠️ Impossible de tester CORS: ${error.message}`;
+      }
+    }
+
+    async function testNetwork() {
+      const resultEl = document.getElementById('networkResult');
+      resultEl.className = 'result loading';
+      resultEl.textContent = '⏳ Test de connectivité...';
+
+      try {
+        const start = Date.now();
+        const response = await fetch(`${API_URL}/health`, { 
+          cache: 'no-cache',
+          mode: 'cors'
+        });
+        const latency = Date.now() - start;
+
+        resultEl.className = 'result success';
+        resultEl.textContent = `✅ Connectivité OK
+Latence: ${latency}ms
+Status: ${response.status}
+URL: ${API_URL}
+Mode: CORS`;
+      } catch (error) {
+        resultEl.className = 'result error';
+        resultEl.textContent = `❌ Échec de Connectivité
+Erreur: ${error.message}
+
+Diagnostics possibles:
+1. Render.com API indisponible
+2. Firewall/Proxy bloquant l'accès
+3. Problème DNS
+4. CORS mal configuré`;
+      }
+    }
+
+    async function fullTest() {
+      const resultEl = document.getElementById('fullResult');
+      resultEl.className = 'result loading';
+      resultEl.textContent = '⏳ Lancement de tous les tests...\n\n';
+
+      const results = [];
+
+      // Test 1: Health
+      try {
+        const response = await fetch(`${API_URL}/health`);
+        results.push(`✅ Health: OK (${response.status})`);
+      } catch (e) {
+        results.push(`❌ Health: ERREUR - ${e.message}`);
+      }
+
+      // Test 2: Login
+      try {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: 'admin@hospital.local', password: 'admin123' })
+        });
+        if (response.ok) {
+          results.push(`✅ Login: OK (${response.status})`);
+        } else {
+          results.push(`⚠️ Login: API Error (${response.status})`);
+        }
+      } catch (e) {
+        results.push(`❌ Login: ERREUR - ${e.message}`);
+      }
+
+      // Test 3: Diagnostic
+      results.push('\n📊 Informations Système:');
+      results.push(`User Agent: ${navigator.userAgent}`);
+      results.push(`URL Origin: ${window.location.origin}`);
+      results.push(`API URL: ${API_URL}`);
+      results.push(`Heure: ${new Date().toISOString()}`);
+
+      resultEl.className = 'result success';
+      resultEl.textContent = results.join('\n');
+    }
+
+    // Auto-run on page load
+    window.onload = () => {
+      testHealth();
+    };
+  </script>
+</body>
+</html>
