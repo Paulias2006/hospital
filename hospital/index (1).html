@@ -612,11 +612,11 @@
     <form onsubmit="login(event)">
       <div class="form-group">
         <label>Email</label>
-        <input type="email" class="form-control" id="email" placeholder="admin@hospital.local" value="admin@hospital.local" required>
+        <input type="email" class="form-control" id="email" placeholder="admin@hospital.local" required>
       </div>
       <div class="form-group">
         <label>Mot de passe</label>
-        <input type="password" class="form-control" id="password" placeholder="Mot de passe" value="admin123" required>
+        <input type="password" class="form-control" id="password" placeholder="Mot de passe" required>
         <small style="color: var(--gray);">* Utilisez l’email et le mot de passe du backend</small>
       </div>
       <button type="submit" class="btn btn-primary btn-block">
@@ -1015,6 +1015,8 @@
 </div>
 <script>
 let state = { rooms: [], patients: [], paiements: {}, history: [], auth: { token: null, user: null }, backendMode: false, apiBaseUrl: '', configLoaded: false };
+window.__env = window.__env || {};
+window.__env.VITE_API_URL = window.__env.VITE_API_URL || 'https://hospital-wkgw.onrender.com';
 let currentReminderFilter = 'all';
 const TARIFS_NON_ASSURE = {
   Standard: 10000,
@@ -1040,16 +1042,18 @@ function getTodayStr() {
 
 function getApiBaseUrl() {
   if (state.apiBaseUrl) return state.apiBaseUrl;
+  const envUrl = window?.VITE_API_URL || window?.__env?.VITE_API_URL || null;
+  if (envUrl) return envUrl;
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
     return 'http://localhost:5000';
   }
-  return '';
+  return 'https://hospital-wkgw.onrender.com';
 }
 
 async function loadRuntimeConfig() {
   if (state.configLoaded) return;
   try {
-    const response = await fetch('/api/config');
+    const response = await fetch(getApiUrl('/api/config'));
     const data = await response.json();
     if (data?.backendUrl) {
       state.apiBaseUrl = data.backendUrl;
@@ -1066,13 +1070,15 @@ function getApiUrl(path) {
 }
 
 async function apiRequest(path, options = {}) {
+  const url = getApiUrl(path);
+  console.debug('API request', url, options.method || 'GET');
   const headers = {
     'Content-Type': 'application/json',
     ...(state.auth.token ? { Authorization: `Bearer ${state.auth.token}` } : {}),
     ...(options.headers || {}),
   };
 
-  const response = await fetch(getApiUrl(path), {
+  const response = await fetch(url, {
     ...options,
     headers,
   });
