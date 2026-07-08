@@ -26,16 +26,26 @@ const app = express();
 // Helmet pour les headers de sécurité
 app.use(helmet());
 
-// CORS
-const allowedOrigins = process.env.CORS_ORIGIN
-  ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()).filter(Boolean)
-  : [];
+// CORS - Force whitelist to include Vercel frontend
+const allowedOrigins = [
+  'https://hospital-lac-mu.vercel.app',
+  'http://localhost:3000',
+  'http://127.0.0.1:3000',
+  'http://localhost',
+  'http://127.0.0.1',
+  'file://',
+  ...(process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean) : []),
+];
+
+console.log('✅ CORS Allowed Origins:', allowedOrigins);
+
 const corsOptions = {
   origin: (origin, callback) => {
-    if (!origin || origin === 'null') return callback(null, true); // allow local file:// preview or null-origin requests
-    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+    if (!origin || origin === 'null' || origin === 'file://') return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
+    console.error(`❌ CORS origin denied: ${origin}`);
     return callback(new Error(`CORS origin denied: ${origin}`));
   },
   credentials: true,
