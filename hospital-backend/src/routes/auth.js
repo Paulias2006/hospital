@@ -165,4 +165,167 @@ router.get(
   })
 );
 
+/**
+ * POST /api/auth/change-password
+ * Changer le mot de passe (auth required)
+ */
+router.post(
+  '/change-password',
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const { oldPassword, newPassword, confirmPassword } = req.body;
+
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tous les champs sont requis',
+        code: 'MISSING_FIELDS',
+      });
+    }
+
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({
+        success: false,
+        error: 'Les mots de passe ne correspondent pas',
+        code: 'PASSWORD_MISMATCH',
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        error: 'Le mot de passe doit contenir au moins 6 caractères',
+        code: 'PASSWORD_TOO_SHORT',
+      });
+    }
+
+    const user = await User.findById(req.user.userId).select('+password');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'Utilisateur non trouvé',
+        code: 'USER_NOT_FOUND',
+      });
+    }
+
+    const isPasswordValid = await user.comparePassword(oldPassword);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        error: 'L\'ancien mot de passe est incorrect',
+        code: 'INVALID_PASSWORD',
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    await History.create({
+      type: 'Security',
+      user: user._id,
+      description: 'Mot de passe modifié',
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+
+    logger.info(`Mot de passe modifié pour: ${user.email}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Mot de passe modifié avec succès',
+    });
+  })
+);
+
+/**
+ * POST /api/auth/change-email
+ * Changer l'email (auth required)
+ */
+router.post(
+  '/change-email',
+  authMiddleware,
+  asyncHandler(async (req, res) => {
+    const { oldEmail, newEmail, confirmEmail, password } = req.body;
+
+    if (!oldEmail || !newEmail || !confirmEmail || !password) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tous les champs sont requis',
+        code: 'MISSING_FIELDS',
+      });
+    }
+
+    if (newEmail !== confirmEmail) {
+      return res.status(400).json({
+        success: false,
+        error: 'Les emails ne correspondent pas',
+        code: 'EMAIL_MISMATCH',
+      });
+    }
+
+    if (!/^.+@.+\..+$/.test(newEmail)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Format d\'email invalide',
+        code: 'INVALID_EMAIL',
+      });
+    }
+
+    const user = await User.findById(req.user.userId).select('+password');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        error: 'Utilisateur non trouvé',
+        code: 'USER_NOT_FOUND',
+      });
+    }
+
+    if (user.email !== oldEmail) {
+      return res.status(400).json({
+        success: false,
+        error: 'L\'ancien email ne correspond pas',
+        code: 'EMAIL_MISMATCH',
+      });
+    }
+
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        error: 'Le mot de passe est incorrect',
+        code: 'INVALID_PASSWORD',
+      });
+    }
+
+    const existingUser = await User.findOne({ email: newEmail });
+    if (existingUser) {
+      return res.status(400).json({
+        success: false,
+        error: 'Cet email est déjà utilisé',
+        code: 'EMAIL_EXISTS',
+      });
+    }
+
+    const oldEmailBackup = user.email;
+    user.email = newEmail;
+    await user.save();
+
+    await History.create({
+      type: 'Security',
+      user: user._id,
+      description: `Email modifié de ${oldEmailBackup} à ${newEmail}`,
+      ipAddress: req.ip,
+      userAgent: req.get('user-agent'),
+    });
+
+    logger.info(`Email modifié pour: ${oldEmailBackup} → ${newEmail}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Email modifié avec succès',
+      data: user.toJSON(),
+    });
+  })
+);
+
 export default router;

@@ -32,6 +32,18 @@ const paymentSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    status: {
+      type: String,
+      enum: ['pending', 'approved', 'rejected'],
+      default: 'pending',
+    },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+    approvalDate: {
+      type: Date,
+    },
     
     // PEC actif ce jour-là
     pecActive: {

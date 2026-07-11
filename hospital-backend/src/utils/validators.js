@@ -36,14 +36,14 @@ export const validateRoom = (data) => {
 export const validatePatient = (data) => {
   const schema = Joi.object({
     nom: Joi.string().required(),
-    prenom: Joi.string(),
-    telephone: Joi.string(),
-    email: Joi.string().email(),
-    adresse: Joi.string(),
+    prenom: Joi.string().allow('').optional(),
+    telephone: Joi.string().allow('').optional(),
+    email: Joi.string().email().allow('').optional(),
+    adresse: Joi.string().allow('').optional(),
     chambreId: Joi.string().required(),
     dateAdmission: Joi.date().required(),
     statut: Joi.string().valid('Non Assuré', 'Assuré').required(),
-    insuranceType: Joi.string(),
+    insuranceType: Joi.string().allow('').optional(),
   });
 
   return schema.validate(data);

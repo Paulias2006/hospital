@@ -37,6 +37,18 @@ const insuranceSchema = new mongoose.Schema(
           enum: ['En attente', 'Accordée', 'Refusée'],
           default: 'En attente',
         },
+        status: {
+          type: String,
+          enum: ['pending', 'approved', 'rejected'],
+          default: 'pending',
+        },
+        approvedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+        },
+        approvalDate: {
+          type: Date,
+        },
         createdAt: {
           type: Date,
           default: Date.now,
