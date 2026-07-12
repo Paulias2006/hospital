@@ -1985,11 +1985,17 @@ function renderHistory() {
     tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-history"></i><p>Aucun historique</p></div></td></tr>`;
     return;
   }
-  const sorted = [...state.history].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const essentialTypes = ['Admission', 'Sortie', 'Modification', 'Paiement'];
+  const filtered = state.history.filter(h => essentialTypes.includes(h.type));
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6"><div class="empty-state"><i class="fas fa-history"></i><p>Aucun historique essentielles</p></div></td></tr>`;
+    return;
+  }
+  const sorted = [...filtered].sort((a, b) => new Date(b.date) - new Date(a.date));
   tbody.innerHTML = sorted.map(h => `
     <tr>
       <td>${new Date(h.date).toLocaleString('fr-FR')}</td>
-      <td><span class="badge badge-${h.type === 'Admission' ? 'success' : 'danger'}">${h.type}</span></td>
+      <td><span class="badge badge-${h.type === 'Admission' ? 'success' : h.type === 'Sortie' ? 'danger' : 'warning'}">${h.type}</span></td>
       <td><strong>${h.patient}</strong></td>
       <td><span class="badge badge-info">${h.chambre}</span></td>
       <td>${h.details}</td>
