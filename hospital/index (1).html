@@ -1256,15 +1256,14 @@ function countNights(dateAdmission, endDate) {
   const admission = new Date(dateAdmission + 'T00:00:00');
   const end = new Date(endDate + 'T00:00:00');
   const diff = end - admission;
-  const nights = Math.floor(diff / (1000 * 60 * 60 * 24));
+  const nights = Math.floor(diff / (1000 * 60 * 60 * 24)) + 1;
   return nights < 0 ? 0 : nights;
 }
 
 function regeneratePaymentsForPatient(patient, endDateStr) {
   const admission = new Date(patient.dateAdmission + 'T00:00:00');
-  // On commence le lendemain de l'admission (première nuitée)
+  // On commence le jour de l'admission pour afficher le tarif tout de suite.
   const start = new Date(admission);
-  start.setDate(start.getDate() + 1);
   const end = new Date(endDateStr + 'T00:00:00');
   state.paiements[patient.id] = {};
   let current = new Date(start);
