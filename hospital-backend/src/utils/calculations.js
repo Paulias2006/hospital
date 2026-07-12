@@ -9,8 +9,8 @@ export const TARIFS_NON_ASSURE = {
 };
 
 /**
- * Compte le nombre de NUITÉES (sans compter le jour d'admission)
- * Ex: admission 01/07, fin 06/07 => 5 nuitées
+ * Compte le nombre de nuitées facturables en comptant le jour d'admission.
+ * Ex: admission 01/07, fin 06/07 => 6 nuitées
  */
 export const countNights = (dateAdmission, dateEnd = new Date()) => {
   const admission = new Date(dateAdmission);
@@ -19,11 +19,8 @@ export const countNights = (dateAdmission, dateEnd = new Date()) => {
   const end = new Date(dateEnd);
   end.setHours(0, 0, 0, 0);
   
-  // Pas de facture le jour d'admission
-  admission.setDate(admission.getDate() + 1);
-  
   const diffMs = end - admission;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24)) + 1;
   
   return diffDays < 0 ? 0 : diffDays;
 };
@@ -99,9 +96,8 @@ export const generatePaymentsForPatient = (patient, insuranceData, endDate = new
   const payments = [];
   const admission = new Date(patient.dateAdmission);
 
-  // Première nuitée = lendemain de l'admission
+  // Première nuitée = jour de l'admission
   let current = new Date(admission);
-  current.setDate(current.getDate() + 1);
   current.setHours(0, 0, 0, 0);
 
   const end = new Date(endDate);

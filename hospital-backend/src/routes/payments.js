@@ -6,7 +6,11 @@ import History from '../models/History.js';
 import { authMiddleware, adminMiddleware } from '../middleware/auth.js';
 import { validatePaymentUpdate } from '../utils/validators.js';
 import { asyncHandler } from '../middleware/errorHandler.js';
-import { getPaymentStats } from '../utils/calculations.js';
+import {
+  formatDateISO,
+  generatePaymentsForPatient,
+  getPaymentStats,
+} from '../utils/calculations.js';
 
 const router = express.Router();
 
@@ -18,8 +22,32 @@ router.get(
   '/patient/:patientId',
   authMiddleware,
   asyncHandler(async (req, res) => {
-    const payments = await Payment.find({ patient: req.params.patientId })
+    const patient = await Patient.findById(req.params.patientId).populate('insurance');
+    if (!patient) {
+      return res.status(404).json({
+        success: false,
+        error: 'Patient non trouvÃ©',
+        code: 'PATIENT_NOT_FOUND',
+      });
+    }
+
+    let payments = await Payment.find({ patient: req.params.patientId })
       .sort({ date: 1 });
+
+    const generatedPayments = generatePaymentsForPatient(
+      patient,
+      patient.insurance || null,
+      patient.dateSortie || new Date()
+    );
+    const existingDates = new Set(payments.map((payment) => formatDateISO(payment.date)));
+    const missingPayments = generatedPayments.filter(
+      (payment) => !existingDates.has(formatDateISO(payment.date))
+    );
+
+    if (missingPayments.length > 0) {
+      await Payment.insertMany(missingPayments);
+      payments = await Payment.find({ patient: req.params.patientId }).sort({ date: 1 });
+    }
 
     const stats = getPaymentStats(payments);
 
