@@ -55,7 +55,7 @@ const patientSchema = new mongoose.Schema(
     },
     typeSortie: {
       type: String,
-      enum: ['Exéat', 'Décès'],
+      enum: ['Exéat', 'Décès', null],
       default: null,
     },
     
